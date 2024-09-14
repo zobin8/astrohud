@@ -1,8 +1,11 @@
 from datetime import datetime
+from datetime import timedelta
 from datetime import timezone
+from typing import Any
 from typing import Dict
 from typing import Optional
 from typing import Tuple
+from typing import List
 import os
 
 import swisseph as swe
@@ -43,27 +46,42 @@ def get_sign(position: float) -> Tuple[Sign, float]:
     return Sign(sign), deg
 
 
-def get_planet_pos(ut: float, planet: Planet, ascendant: Sign) -> SignPosition:
+def get_house(position: float, cusps: Dict[House, float]) -> House:
+    best_house = None
+    best_dist = 360
+    for house, cusp in cusps.items():
+        angle = position - cusp
+        if angle < 0:
+            angle += 360
+        if angle < best_dist:
+            best_dist = angle
+            best_house = house
+    return best_house
+
+
+def get_planet_pos(ut: float, planet: Planet, cusps: Dict[House, float]) -> SignPosition:
     results, flags = swe.calc_ut(ut, planet.value, flags=swe.FLG_SPEED)
     position=results[0]
     speed=results[3]
 
     sign, deg = get_sign(position)
-    house = (sign.value - ascendant.value) % len(House) + 1
+    house = get_house(position, cusps)
 
     return SignPosition(
         abs_angle=position,
         sign=sign,
         sign_angle=deg,
         speed=speed,
-        house=House(house),
+        house=house,
     )
 
 
-def get_ascendant(ut: float, lat: float, lon: float) -> Sign:
-    _, angles = swe.houses(ut, lat, lon, hsys=b'W')
+def get_cusps(ut: float, lat: float, lon: float) -> Tuple[Dict[House, float], Sign]:
+    cusps, angles = swe.houses(ut, lat, lon, hsys=b'P')
     ascendant = angles[0]
-    return get_sign(ascendant)[0]
+    sign = get_sign(ascendant)[0]
+
+    return {House(i + 1): c for i, c in enumerate(cusps)}, sign
 
 
 def get_aspect(p1: PlanetHoroscope, p2: PlanetHoroscope, orb_limit=float) -> Optional[AspectHoroscope]:
@@ -109,13 +127,13 @@ def get_planet_dignity(planet: Planet, position: SignPosition) -> Dignity:
     return Dignity.NORMAL
 
 
-def get_horoscope(date: datetime, lat: float, lon: float, orb_limit: float):
+def get_horoscope(date: datetime, lat: float, lon: float, orb_limit: float) -> Horoscope:
     ut = date_to_ut(date)
-    asc = get_ascendant(ut, lat, lon)
+    cusps, asc = get_cusps(ut, lat, lon)
 
     planets = dict()
     for planet in list(Planet):
-        signPos = get_planet_pos(ut, planet, asc)
+        signPos = get_planet_pos(ut, planet, cusps)
         dignity = get_planet_dignity(planet, signPos)
         planets[planet] = PlanetHoroscope(
             position=signPos,
@@ -129,12 +147,136 @@ def get_horoscope(date: datetime, lat: float, lon: float, orb_limit: float):
         planets=planets,
         aspects=aspects,
         ascending=asc,
+        cusps=cusps,
     )
 
 
-def print_horoscope(date: datetime, lat: float, lon: float, orb_limit: float):
+def get_all_horoscopes(
+    start_date: datetime,
+    end_date: datetime,
+    step: timedelta,
+    lat: float,
+    lon: float,
+    orb_limit: float,
+) -> List[Tuple[datetime, Horoscope]]:
+    date = start_date
+    out = []
+    while date <= end_date:
+        horo = get_horoscope(date, lat, lon, orb_limit)
+        out.append((date, horo))
+        date += step
+    return out
+
+
+def find_range(
+    start_date: datetime,
+    end_date: datetime,
+    step: timedelta,
+    lat: float,
+    lon: float,
+    orb_limit: float,
+    filter: Dict[str, Any]
+) -> List[Tuple[datetime, datetime, timedelta]]:
+    all_horos = get_all_horoscopes(
+        start_date=start_date,
+        end_date=end_date,
+        step=step,
+        lat=lat,
+        lon=lon,
+        orb_limit=orb_limit,
+    )
+
+    match_ranges = []
+    matched_last = False
+    for date, horo in all_horos:
+        matched = horo.match(filter)
+        if matched:
+            if matched_last:
+                match_ranges[-1][1] = date
+            else:
+                match_ranges.append([date, date, step])
+
+        matched_last = matched
+        date += step
+    return match_ranges
+
+
+def find_datetime_range(
+    start_date: datetime,
+    end_date: datetime,
+    lat: float,
+    lon: float,
+    orb_limit: float,
+    day_filter: Dict[str, Any],
+    time_filter: Dict[str, Any],
+) -> List[Tuple[datetime, datetime, timedelta]]:
+    day_ranges = find_range(
+        start_date=start_date,
+        end_date=end_date,
+        step=timedelta(days=1),
+        lat=lat,
+        lon=lon,
+        orb_limit=orb_limit,
+        filter=day_filter
+    )
+
+    day_filter.update(time_filter)
+
+    time_ranges = []
+    for day_range in day_ranges:
+        time_ranges += find_range(
+            start_date=day_range[0] - timedelta(days=1),
+            end_date=day_range[1] + timedelta(days=1),
+            step=timedelta(minutes=15),
+            lat=lat,
+            lon=lon,
+            orb_limit=orb_limit,
+            filter=day_filter
+        )
+
+    return time_ranges
+
+
+def approx_filter(item: Any) -> Any:
+    if isinstance(item, float):
+        return 0.0
+    elif isinstance(item, dict):
+        out = '('
+        for k in sorted(item.keys()):
+            out += f'k={approx_filter(item[k])},'
+        out += ')'
+        return out
+    return str(item)
+
+
+def print_range(
+    start_date: datetime,
+    end_date: datetime,
+    step: timedelta,
+    lat: float,
+    lon: float,
+    orb_limit: float,
+):
+    all_horos = get_all_horoscopes(
+        start_date=start_date,
+        end_date=end_date,
+        step=step,
+        lat=lat,
+        lon=lon,
+        orb_limit=orb_limit,
+    )
+
+    last_approx = None
+    for date, horo in all_horos:
+        approx = approx_filter(horo.to_json())
+        if approx != last_approx:
+            print_horoscope(date, horo)
+            print()
+            last_approx = approx
+
+
+def print_horoscope(date: datetime, horoscope: Horoscope):
     print(date.astimezone(None))
-    horoscope = get_horoscope(date, lat, lon, orb_limit)
     divider = ['=' * 20] * 6
 
     # Planets
