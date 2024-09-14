@@ -32,17 +32,17 @@ class Planet(Enum):
 
 
 class House(Enum):
-    SELF_1 = 1
+    IDENTITY_1 = 1
     MATERIAL_2 = 2
-    COMMUNICATION_3 = 3
-    HOME_4 = 4
-    CREATION_5 = 5
+    INTELLECT_3 = 3
+    ORIGINS_4 = 4
+    PLEASURE_5 = 5
     HEALTH_6 = 6
-    PARTNER_7 = 7
+    PARTNERS_7 = 7
     TRANSFORMATION_8 = 8
-    PHILOSOPHY_9 = 9
-    STATUS_10 = 10
-    FRIENDS_11 = 11
+    SPIRITUALITY_9 = 9
+    AMBITION_10 = 10
+    COMMUNITY_11 = 11
     UNCONSCIOUS_12 = 12
 
 
@@ -70,3 +70,10 @@ class Aspect(Enum):
     SQUARE = 2
     TRINE = 3
     OPPOSITION = 4
+
+class Dignity(Enum):
+    DETRIMENT = 0
+    FALL = 1
+    NORMAL = 2
+    EXALTATION = 3
+    DIGNITY = 4

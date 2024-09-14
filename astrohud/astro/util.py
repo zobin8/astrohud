@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timezone
 from typing import Dict
 from typing import Optional
 from typing import Tuple
@@ -7,6 +8,9 @@ import os
 import swisseph as swe
 
 from astrohud.astro.const import ASPECT_DEGREES
+from astrohud.astro.const import RULERS
+from astrohud.astro.const import EXALTATIONS
+from astrohud.astro.enums import Dignity
 from astrohud.astro.enums import House
 from astrohud.astro.enums import Planet
 from astrohud.astro.enums import Sign
@@ -24,6 +28,7 @@ def init_ephe():
 
 
 def date_to_ut(date: datetime) -> float:
+    assert date.tzinfo == timezone.utc
     date_tup = date.timetuple()[:6]
     et, ut = swe.utc_to_jd(*date_tup, swe.GREG_CAL)
     return ut
@@ -89,6 +94,21 @@ def get_all_aspects(planets: Dict[Planet, PlanetHoroscope], orb_limit: float) ->
     return out
 
 
+def get_planet_dignity(planet: Planet, position: SignPosition) -> Dignity:
+    sign = position.sign
+    opposite = Sign((position.sign.value + 6) % 12)
+    if RULERS[sign] == planet:
+        return Dignity.DIGNITY
+    if RULERS[opposite] == planet:
+        return Dignity.DETRIMENT
+    if planet in EXALTATIONS:
+        if EXALTATIONS[planet][0] == sign:
+            return Dignity.EXALTATION
+        if EXALTATIONS[planet][0] == opposite:
+            return Dignity.FALL
+    return Dignity.NORMAL
+
+
 def get_horoscope(date: datetime, lat: float, lon: float, orb_limit: float):
     ut = date_to_ut(date)
     asc = get_ascendant(ut, lat, lon)
@@ -96,7 +116,12 @@ def get_horoscope(date: datetime, lat: float, lon: float, orb_limit: float):
     planets = dict()
     for planet in list(Planet):
         signPos = get_planet_pos(ut, planet, asc)
-        planets[planet] = PlanetHoroscope(signPos)
+        dignity = get_planet_dignity(planet, signPos)
+        planets[planet] = PlanetHoroscope(
+            position=signPos,
+            dignity=dignity,
+            retrograde=signPos.speed < 0
+        )
 
     aspects = get_all_aspects(planets, orb_limit)
 
@@ -108,11 +133,12 @@ def get_horoscope(date: datetime, lat: float, lon: float, orb_limit: float):
 
 
 def print_horoscope(date: datetime, lat: float, lon: float, orb_limit: float):
+    print(date.astimezone(None))
     horoscope = get_horoscope(date, lat, lon, orb_limit)
-    divider = ['=' * 20] * 5
+    divider = ['=' * 20] * 6
 
     # Planets
-    table = [['Planet', 'Sign', 'House', 'Angle', 'Speed', ]]
+    table = [['Planet', 'Sign', 'House', 'Dignity', 'Angle', 'Speed', ]]
     table.append(divider)
     for planet, signHoro in horoscope.planets.items():
         signPos = signHoro.position
@@ -120,6 +146,7 @@ def print_horoscope(date: datetime, lat: float, lon: float, orb_limit: float):
             planet.name,
             signPos.sign.name,
             signPos.house.name,
+            signHoro.dignity.name,
             f'{signPos.sign_angle:4.1f}°',
             f'{signPos.speed:+6.2f} deg/day',
         ])

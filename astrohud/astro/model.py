@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from astrohud.astro.enums import Aspect
+from astrohud.astro.enums import Dignity
 from astrohud.astro.enums import House
 from astrohud.astro.enums import Planet
 from astrohud.astro.enums import Sign
@@ -35,6 +36,8 @@ class AspectHoroscope:
 @dataclass
 class PlanetHoroscope:
     position: SignPosition
+    dignity: Dignity
+    retrograde: bool
 
 
 @dataclass
