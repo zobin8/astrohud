@@ -1,9 +1,17 @@
 from distutils.core import setup
+import os
 
-setup(name='astrohud',
-      version='0.0',
-      description='Work with astrology data',
-      author='Zoe Krueger',
-      author_email='zoe@zkrueger.com',
-      packages=['astrohud'],
-     )
+
+with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as file:
+    requirements = file.readlines()
+
+
+setup(
+    name='astrohud',
+    version='0.0.2',
+    description='Work with astrology data',
+    author='Zoe Krueger',
+    author_email='zoe@zkrueger.com',
+    packages=['astrohud'],
+    requires=requirements,
+)

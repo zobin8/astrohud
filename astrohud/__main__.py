@@ -7,8 +7,8 @@ import json
 
 from astrohud.astro.util import get_horoscope
 from astrohud.astro.util import find_datetime_range
-from astrohud.astro.util import print_horoscope
-from astrohud.astro.util import print_range
+from astrohud.cli.util import print_horoscope
+from astrohud.cli.util import print_range
 
 
 LATITUDE = 38.5595886
