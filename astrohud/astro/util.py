@@ -76,12 +76,20 @@ def get_planet_pos(ut: float, planet: Planet, cusps: Dict[House, float]) -> Sign
     )
 
 
-def get_cusps(ut: float, lat: float, lon: float) -> Tuple[Dict[House, float], Sign]:
+def get_cusps(ut: float, lat: float, lon: float) -> Tuple[Dict[House, float], SignPosition]:
     cusps, angles = swe.houses(ut, lat, lon, hsys=b'P')
     ascendant = angles[0]
-    sign = get_sign(ascendant)[0]
+    sign, sign_angle = get_sign(ascendant)
 
-    return {House(i + 1): c for i, c in enumerate(cusps)}, sign
+    signPos = SignPosition(
+        abs_angle=ascendant,
+        sign=sign,
+        sign_angle=sign_angle,
+        speed=0,
+        house=House.IDENTITY_1,
+    )
+
+    return {House(i + 1): c for i, c in enumerate(cusps)}, signPos
 
 
 def get_aspect(p1: PlanetHoroscope, p2: PlanetHoroscope, orb_limit=float) -> Optional[AspectHoroscope]:

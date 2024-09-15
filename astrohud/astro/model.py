@@ -115,6 +115,6 @@ class Horoscope(BaseMatchable):
     """Complete horoscope summary"""
 
     planets: Dict[Planet, PlanetHoroscope]
-    ascending: Sign
+    ascending: SignPosition
     cusps: Dict[House, float]
     aspects: Dict[PlanetTuple, AspectHoroscope]

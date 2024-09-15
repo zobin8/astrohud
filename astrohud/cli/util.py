@@ -50,10 +50,16 @@ def print_horoscope(date: datetime, horoscope: Horoscope):
             f'{signPos.speed:+6.2f} deg/day',
         ])
 
+    table.append([
+        'Ascending',
+        horoscope.ascending.sign.name,
+        horoscope.ascending.house.name,
+        '',
+        f'{horoscope.ascending.sign_angle:4.1f}°',
+        ''
+    ])
+
     # Middle
-    table.append([])
-    table.append(divider)
-    table.append(['Ascending', horoscope.ascending.name])
     table.append([])
 
     # Aspects
