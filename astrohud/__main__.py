@@ -18,7 +18,7 @@ LONGITUDE = -121.754827
 
 
 @click.group()
-@click.option('-o', '--orb', type=float, default=5, help='Maximum orb limit for aspects, in degrees.')
+@click.option('-o', '--orb', type=float, default=2, help='Maximum orb limit for aspects, in degrees.')
 @click.option('-l', '--location', type=float, nargs=2, default=(LATITUDE, LONGITUDE), help='Latitude, Longitude coordinates for location. Defaults to Davis, CA')
 @click.pass_context
 def main(ctx: click.Context, **kwargs):

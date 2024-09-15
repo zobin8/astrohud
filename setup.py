@@ -8,7 +8,7 @@ with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as file:
 
 setup(
     name='astrohud',
-    version='0.1.0',
+    version='0.1.1',
     description='Work with astrology data',
     author='Zoe Krueger',
     author_email='zoe@zkrueger.com',
