@@ -106,6 +106,30 @@ def nudge_coords(phi: float, avoid: float) -> float:
     return a + NUDGE_ANGLE
 
 
+def apply_outline(img: Image.Image) -> Image.Image:
+    pixels = dict()
+    for i, pix in enumerate(img.getdata()):
+        if pix == COLOR_WHITE:
+            xy = i % img.width, i // img.width
+            pixels[xy] = 0
+    
+    fringe = set(pixels.keys())
+    while len(fringe) > 0:
+        x, y = fringe.pop()
+        level = pixels[(x, y)] + 1
+        for offset in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            xy2 = x + offset[0], y + offset[1]
+            if pixels.get(xy2, 100) <= level or level > 3 or \
+                xy2[0] < 0 or xy2[1] < 0 or \
+                xy2[0] >= img.width or xy2[1] >= img.height:
+                continue
+            pixels[xy2] = level
+            fringe.add(xy2)
+            img.putpixel(xy2, COLOR_BLACK)
+
+    return img
+
+
 def draw_horoscope(horoscope: Horoscope) -> Image.Image:
     width = (MAX_RADIUS + IMAGE_PAD) * 2 + 1
     img = Image.new("RGBA", (width, width), COLOR_ALPHA)
@@ -128,7 +152,7 @@ def draw_horoscope(horoscope: Horoscope) -> Image.Image:
     for x in range(len(cusps)):
         phi = cusps[x] - asc_angle
         phi_2 = next_cusps[x] - asc_angle
-        width = 2
+        width = 5
         if x % 3 == 0:
             width = 9
             label_width = (HOUSE_OUT_RADIUS - HOUSE_IN_RADIUS) / 3
@@ -151,7 +175,7 @@ def draw_horoscope(horoscope: Horoscope) -> Image.Image:
         draw_spoke(draw, HOUSE_OUT_RADIUS, HOUSE_OUT_RADIUS - TIP_RADIUS, phi, 5)
         placed_planets.append(nudge_phi)
 
-    return img
+    return apply_outline(img)
 
 
 def overlay_image(background: str, overlay: Image.Image) -> Image.Image:
