@@ -62,21 +62,21 @@ def find(ctx: click.Context, start_date: datetime, end_date: datetime, day_filte
 
 @main.command()
 @click.option('-d', '--date', type=click.DateTime(), default=datetime.now(timezone.utc), help='Date to use. Defaults to now.')
-@click.option('--save-img', type=click.Path(dir_okay=False, writable=True), help='If specified, save horoscope image to path.')
-@click.option('--background', type=click.Path(dir_okay=False, writable=True), help='If specified, overlay horoscope over image.')
+@click.option('--save-img', type=click.Path(dir_okay=False, writable=True), multiple=True, help='If specified, save horoscope image to path.')
+@click.option('--background', type=click.Path(dir_okay=False, writable=True), multiple=True, help='If specified, overlay horoscope over image.')
 @click.pass_context
-def horo(ctx: click.Context, date: datetime, save_img: str, background: str):
+def horo(ctx: click.Context, date: datetime, save_img: Tuple[str], background: Tuple[str]):
     date = date.astimezone(timezone.utc)
     lat, lon = ctx.obj['location']
 
     horo = get_horoscope(date, lat, lon, ctx.obj['orb'])
     print_horoscope(date, horo)
 
-    if save_img:
+    for i, save_path in enumerate(save_img):
         img = draw_horoscope(horo)
-        if background:
-            img = overlay_image(background, img)
-        img.save(save_img)
+        if len(background) > i:
+            img = overlay_image(background[i], img)
+        img.save(save_path)
 
 
 if __name__ == '__main__':

@@ -109,7 +109,7 @@ def nudge_coords(phi: float, avoid: float) -> float:
 def apply_outline(img: Image.Image) -> Image.Image:
     pixels = dict()
     for i, pix in enumerate(img.getdata()):
-        if pix == COLOR_WHITE:
+        if pix != COLOR_ALPHA:
             xy = i % img.width, i // img.width
             pixels[xy] = 0
     
