@@ -27,8 +27,8 @@ class Planet(Enum):
     URANUS = 7
     NEPTUNE = 8
     PLUTO = 9
-    CERES = 17
     PALLAS = 18
+    ERIS = 146199
 
 
 class House(Enum):

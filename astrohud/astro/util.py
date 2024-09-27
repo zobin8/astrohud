@@ -19,6 +19,7 @@ from astrohud.astro.enums import Planet
 from astrohud.astro.enums import Sign
 from astrohud.astro.model import AspectHoroscope
 from astrohud.astro.model import Horoscope
+from astrohud.astro.model import HoroscopeSettings
 from astrohud.astro.model import PlanetHoroscope
 from astrohud.astro.model import PlanetTuple
 from astrohud.astro.model import SignPosition
@@ -59,8 +60,12 @@ def get_house(position: float, cusps: Dict[House, float]) -> House:
     return best_house
 
 
-def get_planet_pos(ut: float, planet: Planet, cusps: Dict[House, float]) -> SignPosition:
-    results, flags = swe.calc_ut(ut, planet.value, flags=swe.FLG_SPEED)
+def get_planet_pos(ut: float, planet: Planet, cusps: Dict[House, float], sidereal: bool) -> SignPosition:
+    flags = swe.FLG_SPEED
+    if sidereal:
+        flags |= swe.FLG_SIDEREAL
+
+    results, flags = swe.calc_ut(ut, planet.value, flags=flags)
     position=results[0]
     speed=results[3]
 
@@ -76,8 +81,11 @@ def get_planet_pos(ut: float, planet: Planet, cusps: Dict[House, float]) -> Sign
     )
 
 
-def get_cusps(ut: float, lat: float, lon: float) -> Tuple[Dict[House, float], SignPosition]:
-    cusps, angles = swe.houses(ut, lat, lon, hsys=b'P')
+def get_cusps(ut: float, settings: HoroscopeSettings) -> Tuple[Dict[House, float], SignPosition]:
+    flag_args = dict()
+    if settings.sidereal:
+        flag_args['flags'] = swe.FLG_SIDEREAL
+    cusps, angles = swe.houses_ex(ut, settings.location[0], settings.location[1], hsys=b'P', **flag_args)
     ascendant = angles[0]
     sign, sign_angle = get_sign(ascendant)
 
@@ -135,13 +143,13 @@ def get_planet_dignity(planet: Planet, position: SignPosition) -> Dignity:
     return Dignity.NORMAL
 
 
-def get_horoscope(date: datetime, lat: float, lon: float, orb_limit: float) -> Horoscope:
+def get_horoscope(date: datetime, settings: HoroscopeSettings) -> Horoscope:
     ut = date_to_ut(date)
-    cusps, asc = get_cusps(ut, lat, lon)
+    cusps, asc = get_cusps(ut, settings)
 
     planets = dict()
     for planet in list(Planet):
-        signPos = get_planet_pos(ut, planet, cusps)
+        signPos = get_planet_pos(ut, planet, cusps, settings.sidereal)
         dignity = get_planet_dignity(planet, signPos)
         planets[planet] = PlanetHoroscope(
             position=signPos,
@@ -149,7 +157,9 @@ def get_horoscope(date: datetime, lat: float, lon: float, orb_limit: float) -> H
             retrograde=signPos.speed < 0
         )
 
-    aspects = get_all_aspects(planets, orb_limit)
+    aspects = dict()
+    if settings.aspects:
+        aspects = get_all_aspects(planets, settings.orb_limit)
 
     return Horoscope(
         planets=planets,
@@ -163,14 +173,12 @@ def get_all_horoscopes(
     start_date: datetime,
     end_date: datetime,
     step: timedelta,
-    lat: float,
-    lon: float,
-    orb_limit: float,
+    settings: HoroscopeSettings,
 ) -> List[Tuple[datetime, Horoscope]]:
     date = start_date
     out = []
     while date <= end_date:
-        horo = get_horoscope(date, lat, lon, orb_limit)
+        horo = get_horoscope(date, settings)
         out.append((date, horo))
         date += step
     return out
@@ -180,18 +188,14 @@ def find_range(
     start_date: datetime,
     end_date: datetime,
     step: timedelta,
-    lat: float,
-    lon: float,
-    orb_limit: float,
-    filter: Dict[str, Any]
+    filter: Dict[str, Any],
+    settings: HoroscopeSettings,
 ) -> List[Tuple[datetime, datetime, timedelta]]:
     all_horos = get_all_horoscopes(
         start_date=start_date,
         end_date=end_date,
         step=step,
-        lat=lat,
-        lon=lon,
-        orb_limit=orb_limit,
+        settings=settings,
     )
 
     match_ranges = []
@@ -212,20 +216,16 @@ def find_range(
 def find_datetime_range(
     start_date: datetime,
     end_date: datetime,
-    lat: float,
-    lon: float,
-    orb_limit: float,
     day_filter: Dict[str, Any],
     time_filter: Dict[str, Any],
+    settings: HoroscopeSettings,
 ) -> List[Tuple[datetime, datetime, timedelta]]:
     day_ranges = find_range(
         start_date=start_date,
         end_date=end_date,
         step=timedelta(days=1),
-        lat=lat,
-        lon=lon,
-        orb_limit=orb_limit,
-        filter=day_filter
+        filter=day_filter,
+        settings=settings,
     )
 
     day_filter.update(time_filter)
@@ -236,10 +236,8 @@ def find_datetime_range(
             start_date=day_range[0] - timedelta(days=1),
             end_date=day_range[1] + timedelta(days=1),
             step=timedelta(minutes=15),
-            lat=lat,
-            lon=lon,
-            orb_limit=orb_limit,
-            filter=day_filter
+            filter=day_filter,
+            settings=settings
         )
 
     return time_ranges

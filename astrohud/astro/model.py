@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from abc import ABC
 from typing import Any
 from typing import Dict
-from typing import List
+from typing import Tuple
 from enum import Enum
 
 from astrohud.astro.enums import Aspect
@@ -118,3 +118,13 @@ class Horoscope(BaseMatchable):
     ascending: SignPosition
     cusps: Dict[House, float]
     aspects: Dict[PlanetTuple, AspectHoroscope]
+
+
+@dataclass
+class HoroscopeSettings:
+    """Settings for rendering horoscopes"""
+
+    orb_limit: float
+    location: Tuple[float, float]
+    sidereal: bool
+    aspects: bool

@@ -2,6 +2,7 @@ from datetime import datetime
 from datetime import timedelta
 
 from astrohud.astro.model import Horoscope
+from astrohud.astro.model import HoroscopeSettings
 from astrohud.astro.util import get_all_horoscopes
 from astrohud.astro.util import approx_filter
 
@@ -10,17 +11,13 @@ def print_range(
     start_date: datetime,
     end_date: datetime,
     step: timedelta,
-    lat: float,
-    lon: float,
-    orb_limit: float,
+    settings: HoroscopeSettings,
 ):
     all_horos = get_all_horoscopes(
         start_date=start_date,
         end_date=end_date,
         step=step,
-        lat=lat,
-        lon=lon,
-        orb_limit=orb_limit,
+        settings=settings,
     )
 
     last_approx = None

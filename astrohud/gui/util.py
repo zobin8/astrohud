@@ -119,7 +119,7 @@ def apply_outline(img: Image.Image) -> Image.Image:
         level = pixels[(x, y)] + 1
         for offset in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             xy2 = x + offset[0], y + offset[1]
-            if pixels.get(xy2, 100) <= level or level > 3 or \
+            if pixels.get(xy2, 100) <= level or level > 5 or \
                 xy2[0] < 0 or xy2[1] < 0 or \
                 xy2[0] >= img.width or xy2[1] >= img.height:
                 continue
@@ -143,7 +143,7 @@ def draw_horoscope(horoscope: Horoscope) -> Image.Image:
     asc_angle = horoscope.ascending.abs_angle
     for x in range(12):
         phi = (x * 30) - asc_angle
-        draw_spoke(draw, ZODIAC_IN_RADIUS, ZODIAC_OUT_RADIUS, phi, 5)
+        draw_spoke(draw, ZODIAC_IN_RADIUS, ZODIAC_OUT_RADIUS, phi, 8)
         label_quad(draw, ZODIAC_IN_RADIUS, ZODIAC_OUT_RADIUS, phi, phi + 30, Sign(x))
 
     cusps = [horoscope.cusps[h] for h in sorted(horoscope.cusps.keys(), key=lambda x: x.value)]
@@ -152,9 +152,9 @@ def draw_horoscope(horoscope: Horoscope) -> Image.Image:
     for x in range(len(cusps)):
         phi = cusps[x] - asc_angle
         phi_2 = next_cusps[x] - asc_angle
-        width = 5
+        width = 8
         if x % 3 == 0:
-            width = 9
+            width = 15
             label_width = (HOUSE_OUT_RADIUS - HOUSE_IN_RADIUS) / 3
             label_quad(draw, HOUSE_IN_RADIUS, HOUSE_OUT_RADIUS, phi, phi, spoke_labels[x // 3], True)
             draw_spoke(draw, HOUSE_OUT_RADIUS - label_width, ZODIAC_IN_RADIUS, phi, width)
@@ -171,8 +171,8 @@ def draw_horoscope(horoscope: Horoscope) -> Image.Image:
         if find_collision(nudge_phi, placed_planets):
             planet_radius = PLANET_2_RADIUS
         label_point(draw, planet_radius, nudge_phi, planet)
-        draw_spoke(draw, ZODIAC_IN_RADIUS, ZODIAC_IN_RADIUS + TIP_RADIUS, phi, 5)
-        draw_spoke(draw, HOUSE_OUT_RADIUS, HOUSE_OUT_RADIUS - TIP_RADIUS, phi, 5)
+        draw_spoke(draw, ZODIAC_IN_RADIUS, ZODIAC_IN_RADIUS + TIP_RADIUS, phi, 8)
+        draw_spoke(draw, HOUSE_OUT_RADIUS, HOUSE_OUT_RADIUS - TIP_RADIUS, phi, 8)
         placed_planets.append(nudge_phi)
 
     return apply_outline(img)

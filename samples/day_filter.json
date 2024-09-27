@@ -1,0 +1,10 @@
+{
+    "planets": {
+        "sun": {
+            "position": {"sign": "cancer"}
+        },
+        "moon": {
+            "position": {"sign": "virgo"}
+        }
+    }
+}

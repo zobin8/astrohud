@@ -12,7 +12,7 @@ RULERS = {
     Sign.GEMINI: Planet.MERCURY,
     Sign.CANCER: Planet.MOON,
     Sign.LEO: Planet.SUN,
-    Sign.VIRGO: Planet.CERES,
+    Sign.VIRGO: Planet.ERIS,
     Sign.LIBRA: Planet.PALLAS,
     Sign.SCORPIO: Planet.PLUTO,
     Sign.SAGITTARIUS: Planet.JUPITER,
