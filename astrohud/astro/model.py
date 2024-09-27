@@ -128,3 +128,4 @@ class HoroscopeSettings:
     location: Tuple[float, float]
     sidereal: bool
     aspects: bool
+    house_sys: bytes

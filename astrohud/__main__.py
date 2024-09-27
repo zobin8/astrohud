@@ -23,12 +23,17 @@ def default_settings(function):
     @click.option('-l', '--location', type=float, nargs=2, default=(LATITUDE, LONGITUDE), help='Latitude, Longitude coordinates for location. Defaults to Davis, CA')
     @click.option('--sidereal/--tropical', default=True, is_flag=True, show_default=True, help='Use the sidereal zodiac instead of tropical')
     @click.option('--aspects/--no-aspects', default=True, is_flag=True, show_default=True, help='Calculate planetary aspects')
-    def wrapper(orb_limit: float, location: Tuple[float, float], sidereal: bool, aspects: bool, **kwargs):
+    @click.option(
+        '--house-sys', default='P', type=click.Choice(['W', 'P', 'N'], case_sensitive=False), show_default=True,
+        help='House system. Can be Whole, Placidus, or None.'
+    )
+    def wrapper(orb_limit: float, location: Tuple[float, float], sidereal: bool, aspects: bool, house_sys: bytes, **kwargs):
         settings = HoroscopeSettings(
             orb_limit=orb_limit,
             location=location,
             sidereal=sidereal,
             aspects=aspects,
+            house_sys=bytes(house_sys, 'latin1'),
         )
         return function(settings=settings, **kwargs)
     

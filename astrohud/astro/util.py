@@ -85,7 +85,7 @@ def get_cusps(ut: float, settings: HoroscopeSettings) -> Tuple[Dict[House, float
     flag_args = dict()
     if settings.sidereal:
         flag_args['flags'] = swe.FLG_SIDEREAL
-    cusps, angles = swe.houses_ex(ut, settings.location[0], settings.location[1], hsys=b'P', **flag_args)
+    cusps, angles = swe.houses_ex(ut, settings.location[0], settings.location[1], hsys=settings.house_sys, **flag_args)
     ascendant = angles[0]
     sign, sign_angle = get_sign(ascendant)
 
