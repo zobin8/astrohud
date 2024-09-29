@@ -1,17 +1,20 @@
 from typing import Tuple
+from typing import List
 from typing import Union
 from typing import Optional
+from typing import Set
 from enum import Enum
 import math
 import os
 
 from PIL import Image
 from PIL import ImageDraw
-from PIL import ImageFilter
 from PIL import ImageFont
 
 from astrohud.astro.model import Horoscope
+from astrohud.astro.enums import Aspect
 from astrohud.astro.enums import Sign
+from astrohud.gui.model import RenderSettings
 
 
 COLOR_ALPHA = (255, 255, 255, 0)
@@ -22,17 +25,22 @@ COLOR_WHITE = (255, 255, 255, 255)
 MAX_RADIUS = 1500
 IMAGE_PAD = 100
 
+
 ZODIAC_OUT_RADIUS = MAX_RADIUS * 1.0
 ZODIAC_IN_RADIUS = MAX_RADIUS * 0.8
+
 
 HOUSE_OUT_RADIUS = MAX_RADIUS * 0.5
 HOUSE_IN_RADIUS = MAX_RADIUS * 0.4
 
+
 PLANET_1_RADIUS = MAX_RADIUS * 0.7
 PLANET_2_RADIUS = MAX_RADIUS * 0.6
-TIP_RADIUS = MAX_RADIUS * 0.02
+TIP_RADIUS = MAX_RADIUS * 0.015
+
 
 NUDGE_ANGLE = 4
+
 
 FONT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'font/HackNerdFont-Regular.ttf')
 IMG_FOLDER =  os.path.join(os.path.dirname(os.path.dirname(__file__)), 'img')
@@ -42,7 +50,8 @@ SMALL_FONT = ImageFont.truetype(FONT_FILE, size=48, encoding='unic')
 
 def get_symbol(name: str) -> Image.Image:
     img = Image.open(os.path.join(IMG_FOLDER, f'{name.lower()}.png'))
-    return img.convert('RGBA')
+
+    return img.convert('RGBA').resize((150, 150))
 
 
 def polar_to_xy(rho: float, phi: float) -> Tuple[float, float]:
@@ -56,13 +65,34 @@ def polar_to_xy(rho: float, phi: float) -> Tuple[float, float]:
 
 
 def draw_circle(draw: ImageDraw.Draw, radius: float):
-    draw.circle(polar_to_xy(0, 0), radius, width=5, fill=COLOR_ALPHA, outline=COLOR_WHITE)
+    draw.circle(polar_to_xy(0, 0), radius, width=8, outline=COLOR_WHITE)
 
 
-def draw_spoke(draw: ImageDraw.Draw, r1: float, r2: float, angle: float, width: float):
-    a = polar_to_xy(r1, angle)
-    b = polar_to_xy(r2, angle)
+def draw_spoke(draw: ImageDraw.Draw, r1: float, r2: float, phi: float, width: float):
+    a = polar_to_xy(r1, phi)
+    b = polar_to_xy(r2, phi)
     draw.line(a + b, fill=COLOR_WHITE, width=width)
+
+
+def draw_chord(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: float):
+    a = polar_to_xy(r, phi1)
+    b = polar_to_xy(r, phi2)
+    draw.line(a + b, fill=COLOR_WHITE, width=width)
+
+
+def draw_arc(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: float):
+    box_min = polar_to_xy(r * math.sqrt(2), 315)
+    box_max = polar_to_xy(r * math.sqrt(2), 135)
+    draw.arc(box_min + box_max, phi1 + 180, phi2 + 180, fill=COLOR_WHITE, width=width)
+
+
+def draw_circle_cord(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: float):
+    a = polar_to_xy(r, phi1)
+    b = polar_to_xy(r, phi2)
+    mid = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+    r2 = math.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+
+    draw.circle(mid, max(r2 / 2, TIP_RADIUS), width=width, fill=COLOR_WHITE, outline=COLOR_WHITE)
 
 
 def label_point(draw: ImageDraw.Draw, rho: float, phi: float, label: Union[str, Enum], small: bool = False):
@@ -71,8 +101,8 @@ def label_point(draw: ImageDraw.Draw, rho: float, phi: float, label: Union[str, 
     if isinstance(label, str):
         draw.text(xy, label, font=font, fill=COLOR_WHITE, anchor='mm')
     else:
-        img = get_symbol(label.name).resize((150, 150))
-        draw.bitmap((xy[0] - 75, xy[1] - 75), img, fill=COLOR_WHITE)
+        img = get_symbol(label.name)
+        draw.bitmap((xy[0] - (img.width / 2), xy[1] - (img.width / 2)), img, fill=COLOR_WHITE)
 
 
 def label_quad(draw: ImageDraw.Draw, r1: float, r2: float, a1: float, a2: float, label: str, small: bool = False):
@@ -85,16 +115,42 @@ def label_quad(draw: ImageDraw.Draw, r1: float, r2: float, a1: float, a2: float,
     label_point(draw, rho, phi, label, small)
 
 
-def find_collision(phi: float, avoid: float) -> Optional[float]:
+def close_angles(phi1: float, phi2: float) -> Tuple[float, float]:
+    while phi1 - phi2 > 180:
+        phi1 -= 360
+    while phi2 - phi1 > 180:
+        phi1 += 360
+
+    return phi1, phi2
+
+
+def compare_angles(phi1: float, phi2: float) -> float:
+    a1, a2 = close_angles(phi1, phi2)
+    return a1 - a2
+
+
+def sort_angles(phi1: float, phi2: float) -> Tuple[float, float]:
+    if compare_angles(phi1, phi2) > 0:
+        return phi2, phi1
+    return phi1, phi2
+
+
+def find_collision(phi: float, avoid: List[float]) -> Optional[float]:
     for a in avoid:
-        if a - phi > 180:
-            a -= 360
-        if phi - a > 180:
-            a += 360
+        a, phi = close_angles(a, phi)
 
         if abs(a - phi) < NUDGE_ANGLE:
             return a
     return None
+
+
+def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float]) -> bool:
+    comp_start = compare_angles(arc1[0], arc2[0])
+    if comp_start > 0:
+        cross = compare_angles(arc1[0], arc2[1]) - 30
+    else:
+        cross = compare_angles(arc2[0], arc1[1]) - 30
+    return cross < 0
 
 
 def nudge_coords(phi: float, avoid: float) -> float:
@@ -106,12 +162,17 @@ def nudge_coords(phi: float, avoid: float) -> float:
     return a + NUDGE_ANGLE
 
 
-def apply_outline(img: Image.Image) -> Image.Image:
-    pixels = dict()
+def get_pixels(img: Image.Image) -> Set[Tuple[int, int]]:
+    pixels = set()
     for i, pix in enumerate(img.getdata()):
         if pix != COLOR_ALPHA:
             xy = i % img.width, i // img.width
-            pixels[xy] = 0
+            pixels.add(xy)
+    return pixels
+
+
+def apply_outline(img: Image.Image) -> Image.Image:
+    pixels = {xy: 0 for xy in get_pixels(img)}
     
     fringe = set(pixels.keys())
     while len(fringe) > 0:
@@ -130,28 +191,24 @@ def apply_outline(img: Image.Image) -> Image.Image:
     return img
 
 
-def draw_horoscope(horoscope: Horoscope) -> Image.Image:
-    width = (MAX_RADIUS + IMAGE_PAD) * 2 + 1
-    img = Image.new("RGBA", (width, width), COLOR_ALPHA)
-    draw = ImageDraw.Draw(img)
-
+def draw_structure(draw: ImageDraw.Draw, settings: RenderSettings):
     draw_circle(draw, ZODIAC_OUT_RADIUS)
     draw_circle(draw, ZODIAC_IN_RADIUS)
     draw_circle(draw, HOUSE_OUT_RADIUS)
     draw_circle(draw, HOUSE_IN_RADIUS)
-
-    asc_angle = horoscope.ascending.abs_angle
+    
     for x in range(12):
-        phi = (x * 30) - asc_angle
+        phi = (x * 30) - settings.asc_angle
         draw_spoke(draw, ZODIAC_IN_RADIUS, ZODIAC_OUT_RADIUS, phi, 8)
         label_quad(draw, ZODIAC_IN_RADIUS, ZODIAC_OUT_RADIUS, phi, phi + 30, Sign(x))
 
-    cusps = [horoscope.cusps[h] for h in sorted(horoscope.cusps.keys(), key=lambda x: x.value)]
-    next_cusps = cusps[1:] + [cusps[0]]
+
+def draw_houses(draw: ImageDraw.Draw, settings: RenderSettings):
+    next_cusps = settings.cusps[1:] + [settings.cusps[0]]
     spoke_labels = ['A', 'I', 'D', 'M']
-    for x in range(len(cusps)):
-        phi = cusps[x] - asc_angle
-        phi_2 = next_cusps[x] - asc_angle
+    for x in range(len(settings.cusps)):
+        phi = settings.cusps[x] - settings.asc_angle
+        phi_2 = next_cusps[x] - settings.asc_angle
         width = 8
         if x % 3 == 0:
             width = 15
@@ -163,17 +220,88 @@ def draw_horoscope(horoscope: Horoscope) -> Image.Image:
             draw_spoke(draw, HOUSE_IN_RADIUS, ZODIAC_IN_RADIUS, phi, width)
         label_quad(draw, HOUSE_IN_RADIUS, HOUSE_OUT_RADIUS, phi, phi_2, str(x + 1))
 
+
+def draw_planets(draw: ImageDraw.Draw, horoscope: Horoscope, settings: RenderSettings):
     placed_planets = []
     for planet, horo in horoscope.planets.items():
-        phi = horo.position.abs_angle - asc_angle
-        nudge_phi = nudge_coords(horo.position.abs_angle, cusps) - asc_angle
+        phi = horo.position.abs_angle - settings.asc_angle
+        nudge_phi = nudge_coords(horo.position.abs_angle, settings.cusps) - settings.asc_angle
         planet_radius = PLANET_1_RADIUS
         if find_collision(nudge_phi, placed_planets):
             planet_radius = PLANET_2_RADIUS
         label_point(draw, planet_radius, nudge_phi, planet)
         draw_spoke(draw, ZODIAC_IN_RADIUS, ZODIAC_IN_RADIUS + TIP_RADIUS, phi, 8)
         draw_spoke(draw, HOUSE_OUT_RADIUS, HOUSE_OUT_RADIUS - TIP_RADIUS, phi, 8)
+        draw_spoke(draw, HOUSE_IN_RADIUS, HOUSE_IN_RADIUS + TIP_RADIUS, phi, 8)
         placed_planets.append(nudge_phi)
+
+
+def draw_classic_aspects(draw: ImageDraw.Draw, horoscope: Horoscope, settings: RenderSettings):
+    for planets, aspect in horoscope.aspects.items():
+        a1 = horoscope.planets[planets.planet1].position.abs_angle - settings.asc_angle
+        a2 = horoscope.planets[planets.planet2].position.abs_angle - settings.asc_angle
+
+        r = HOUSE_IN_RADIUS
+        if aspect.aspect == Aspect.CONJUNCTION:
+            draw_circle_cord(draw, r, a1, a2, 8)
+        else:
+            draw_chord(draw, r, a1, a2, 8)
+
+
+def draw_improved_aspects(draw: ImageDraw.Draw, horoscope: Horoscope, settings: RenderSettings):
+    arcs = list()
+    for planets, aspect in horoscope.aspects.items():
+        a1 = horoscope.planets[planets.planet1].position.abs_angle - settings.asc_angle
+        a2 = horoscope.planets[planets.planet2].position.abs_angle - settings.asc_angle
+
+        if aspect.aspect == Aspect.CONJUNCTION:
+            draw_circle_cord(draw, HOUSE_IN_RADIUS, a1, a2, 8)
+        else:
+            a1, a2 = sort_angles(-a1, -a2)
+            arcs.append((a1, a2))
+
+    collision_matrix = [[check_arc_collision(a1, a2) for a1 in arcs] for a2 in arcs]
+    collisions = sorted(enumerate([sum(row) for row in collision_matrix]), key=lambda t: t[1])
+    remaining_arcs = list(range(len(arcs)))
+    arc_groups = []
+    for i, _ in collisions:
+        group = [i]
+        if i not in remaining_arcs:
+            continue
+        remaining_arcs.remove(i)
+        for j in remaining_arcs:
+            if sum(collision_matrix[k][j] for k in group) == 0:
+                remaining_arcs.remove(j)
+                group.append(j)
+        arc_groups.append(group)
+
+    radius = HOUSE_IN_RADIUS
+    for group in arc_groups:
+        radius -= HOUSE_IN_RADIUS / (len(arc_groups) + 1)
+        for i in group:
+            phi1, phi2 = arcs[i]
+            draw_arc(draw, radius, phi1, phi2, 8)
+            draw_spoke(draw, HOUSE_IN_RADIUS, radius, -phi1, 8)
+            draw_spoke(draw, HOUSE_IN_RADIUS, radius, -phi2, 8)
+
+
+def draw_horoscope(horoscope: Horoscope) -> Image.Image:
+    width = (MAX_RADIUS + IMAGE_PAD) * 2 + 1
+    img = Image.new("RGBA", (width, width), COLOR_ALPHA)
+    draw = ImageDraw.Draw(img)
+    asc_angle = horoscope.ascending.abs_angle
+    cusps = [horoscope.cusps[h] for h in sorted(horoscope.cusps.keys(), key=lambda x: x.value)]
+
+    settings = RenderSettings(
+        asc_angle=asc_angle,
+        cusps=cusps,
+    )
+
+    draw_structure(draw, settings)
+    draw_houses(draw, settings)
+    draw_planets(draw, horoscope, settings)
+    #draw_classic_aspects(draw, horoscope, settings)
+    draw_improved_aspects(draw, horoscope, settings)
 
     return apply_outline(img)
 
