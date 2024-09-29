@@ -147,9 +147,9 @@ def find_collision(phi: float, avoid: List[float]) -> Optional[float]:
 def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float]) -> bool:
     comp_start = compare_angles(arc1[0], arc2[0])
     if comp_start > 0:
-        cross = compare_angles(arc1[0], arc2[1]) - 30
+        cross = compare_angles(arc1[0], arc2[1]) - NUDGE_ANGLE
     else:
-        cross = compare_angles(arc2[0], arc1[1]) - 30
+        cross = compare_angles(arc2[0], arc1[1]) - NUDGE_ANGLE
     return cross < 0
 
 
@@ -261,10 +261,11 @@ def draw_improved_aspects(draw: ImageDraw.Draw, horoscope: Horoscope, settings: 
             arcs.append((a1, a2))
 
     collision_matrix = [[check_arc_collision(a1, a2) for a1 in arcs] for a2 in arcs]
-    collisions = sorted(enumerate([sum(row) for row in collision_matrix]), key=lambda t: t[1])
+    #collisions = sorted(enumerate([sum(row) for row in collision_matrix]), key=lambda t: t[1])
     remaining_arcs = list(range(len(arcs)))
+    arc_order = sorted(remaining_arcs, key=lambda i: arcs[i][0] - arcs[i][1])
     arc_groups = []
-    for i, _ in collisions:
+    for i in arc_order:
         group = [i]
         if i not in remaining_arcs:
             continue
