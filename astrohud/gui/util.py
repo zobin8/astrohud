@@ -1,9 +1,11 @@
+from typing import Dict
 from typing import Tuple
 from typing import List
 from typing import Union
 from typing import Optional
 from typing import Set
 from enum import Enum
+from collections import defaultdict
 import math
 import os
 
@@ -13,8 +15,10 @@ from PIL import ImageFont
 
 from astrohud.astro.model import Horoscope
 from astrohud.astro.enums import Aspect
+from astrohud.astro.enums import Planet
 from astrohud.astro.enums import Sign
 from astrohud.gui.model import RenderSettings
+from astrohud.gui.model import UnionFind
 
 
 COLOR_ALPHA = (255, 255, 255, 0)
@@ -37,6 +41,8 @@ HOUSE_IN_RADIUS = MAX_RADIUS * 0.4
 PLANET_1_RADIUS = MAX_RADIUS * 0.7
 PLANET_2_RADIUS = MAX_RADIUS * 0.6
 TIP_RADIUS = MAX_RADIUS * 0.015
+BUBBLE_RADIUS = MAX_RADIUS * 0.005
+BRIDGE_RADIUS = MAX_RADIUS * 0.015
 
 
 NUDGE_ANGLE = 4
@@ -81,18 +87,20 @@ def draw_chord(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: 
 
 
 def draw_arc(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: float):
-    box_min = polar_to_xy(r * math.sqrt(2), 315)
-    box_max = polar_to_xy(r * math.sqrt(2), 135)
-    draw.arc(box_min + box_max, phi1 + 180, phi2 + 180, fill=COLOR_WHITE, width=width)
+    box_min = polar_to_xy(r * math.sqrt(2) + (width / 2), 315)
+    box_max = polar_to_xy(r * math.sqrt(2) + (width / 2), 135)
+
+    draw.arc(box_min + box_max, 180 - phi1, 180 - phi2, fill=COLOR_WHITE, width=width)
 
 
-def draw_circle_cord(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: float):
+def draw_circle_cord(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: float, min_size: float):
     a = polar_to_xy(r, phi1)
     b = polar_to_xy(r, phi2)
     mid = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
-    r2 = math.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+    #r2 = math.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+    #actual_r2 = max(r2 / 2, min_size)
 
-    draw.circle(mid, max(r2 / 2, TIP_RADIUS), width=width, fill=COLOR_WHITE, outline=COLOR_WHITE)
+    draw.circle(mid, min_size, width=width, fill=COLOR_WHITE, outline=COLOR_WHITE)
 
 
 def label_point(draw: ImageDraw.Draw, rho: float, phi: float, label: Union[str, Enum], small: bool = False):
@@ -146,11 +154,11 @@ def find_collision(phi: float, avoid: List[float]) -> Optional[float]:
 
 def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float]) -> bool:
     comp_start = compare_angles(arc1[0], arc2[0])
-    if comp_start > 0:
-        cross = compare_angles(arc1[0], arc2[1]) - NUDGE_ANGLE
+    if comp_start < 0:
+        cross = compare_angles(arc1[0], arc2[1]) + NUDGE_ANGLE
     else:
-        cross = compare_angles(arc2[0], arc1[1]) - NUDGE_ANGLE
-    return cross < 0
+        cross = compare_angles(arc2[0], arc1[1]) + NUDGE_ANGLE
+    return cross > 0
 
 
 def nudge_coords(phi: float, avoid: float) -> float:
@@ -248,42 +256,107 @@ def draw_classic_aspects(draw: ImageDraw.Draw, horoscope: Horoscope, settings: R
             draw_chord(draw, r, a1, a2, 8)
 
 
-def draw_improved_aspects(draw: ImageDraw.Draw, horoscope: Horoscope, settings: RenderSettings):
+def merge_conjunctions(draw: ImageDraw.Draw, horoscope: Horoscope, settings: RenderSettings) -> Dict[Planet, float]:
+    positions = {p:  horoscope.planets[p].position.abs_angle - settings.asc_angle for p in horoscope.planets}
+    uf = UnionFind()
+    for planets, aspect in horoscope.aspects.items():
+        if aspect.aspect == Aspect.CONJUNCTION:
+            uf.union(planets.planet1, planets.planet2)
+    for conjoined in uf.members.values():
+        anchor = positions[list(conjoined)[0]]
+        conjoined_pos = [close_angles(positions[p], anchor)[0] for p in conjoined]
+        avg_pos = sum(conjoined_pos) / len(conjoined_pos)
+
+        for p in conjoined:
+            a2, a1 = sort_angles(positions[p], avg_pos)
+            draw_arc(draw, HOUSE_IN_RADIUS - 8, a1, a2, 8)
+            positions[p] = avg_pos
+
+        draw_circle_cord(draw, HOUSE_IN_RADIUS, avg_pos, avg_pos, 8, TIP_RADIUS)
+    return positions
+
+
+def get_aspect_arcs(positions: Dict[Planet, float], horoscope: Horoscope) -> List[Tuple[float, float]]:
     arcs = list()
     for planets, aspect in horoscope.aspects.items():
-        a1 = horoscope.planets[planets.planet1].position.abs_angle - settings.asc_angle
-        a2 = horoscope.planets[planets.planet2].position.abs_angle - settings.asc_angle
+        a1 = positions[planets.planet1]
+        a2 = positions[planets.planet2]
 
-        if aspect.aspect == Aspect.CONJUNCTION:
-            draw_circle_cord(draw, HOUSE_IN_RADIUS, a1, a2, 8)
-        else:
-            a1, a2 = sort_angles(-a1, -a2)
-            arcs.append((a1, a2))
+        a2, a1 = sort_angles(a1, a2)
+        if aspect.aspect != Aspect.CONJUNCTION:
+            arc = close_angles(a1, a2)
+            if arc not in arcs:
+                arcs.append(arc)
+    return arcs
 
-    collision_matrix = [[check_arc_collision(a1, a2) for a1 in arcs] for a2 in arcs]
-    #collisions = sorted(enumerate([sum(row) for row in collision_matrix]), key=lambda t: t[1])
-    remaining_arcs = list(range(len(arcs)))
-    arc_order = sorted(remaining_arcs, key=lambda i: arcs[i][0] - arcs[i][1])
-    arc_groups = []
+
+def get_arc_groups(arcs: List[Tuple[float, float]], collision_matrix: List[List[bool]]) -> List[List[int]]:
+    arc_order = sorted(list(range(len(arcs))), key=lambda i: arcs[i][0] - arcs[i][1])
+    arc_groups: List[List[int]] = [[]]
     for i in arc_order:
-        group = [i]
-        if i not in remaining_arcs:
-            continue
-        remaining_arcs.remove(i)
-        for j in remaining_arcs:
-            if sum(collision_matrix[k][j] for k in group) == 0:
-                remaining_arcs.remove(j)
-                group.append(j)
-        arc_groups.append(group)
+        level = 0
+        while sum([collision_matrix[i][j] for j in arc_groups[level]]) > 0:
+            level += 1
+            if level >= len(arc_groups):
+                arc_groups.append([])
 
+        arc_groups[level].append(i)
+    return arc_groups
+
+
+def get_arc_bridged_segments(arcs: List[Tuple[float, float]], collision_matrix: List[List[bool]], arc_groups: List[List[int]]) -> Dict[float, List[int]]:
+    segments: Dict[float, List[int]] = defaultdict(list)
+    for level, group in enumerate(arc_groups):
+        for i in group:
+            for level2 in range(level):
+                for j in arc_groups[level2]:
+                    if collision_matrix[i][j]:
+                        for spoke in arcs[i]:
+                            if abs(compare_angles(spoke, arcs[j][0])) < 0.1:
+                                continue
+                            if abs(compare_angles(spoke, arcs[j][1])) < 0.1:
+                                continue
+                            if(check_arc_collision(arcs[j], (spoke, spoke))):
+                                segments[spoke].append(level2 + 1)
+    return segments
+
+
+def draw_arc_aspects(draw: ImageDraw.Draw, arcs: List[Tuple[float, float]], arc_groups: List[List[int]], segments: Dict[float, List[int]]):
     radius = HOUSE_IN_RADIUS
+    radii = [HOUSE_IN_RADIUS]
+    step_radius = HOUSE_IN_RADIUS / (len(arc_groups) + 1)
     for group in arc_groups:
-        radius -= HOUSE_IN_RADIUS / (len(arc_groups) + 1)
+        radius -= step_radius
+        radii += [radius]
         for i in group:
             phi1, phi2 = arcs[i]
             draw_arc(draw, radius, phi1, phi2, 8)
-            draw_spoke(draw, HOUSE_IN_RADIUS, radius, -phi1, 8)
-            draw_spoke(draw, HOUSE_IN_RADIUS, radius, -phi2, 8)
+            draw_circle_cord(draw, radius, phi1, phi1, 8, BUBBLE_RADIUS)
+            draw_circle_cord(draw, radius, phi2, phi2, 8, BUBBLE_RADIUS)
+
+            for angle in arcs[i]:
+                parts = [0] + sorted(set(segments[angle])) + [-1]
+                for l1, l2 in zip(parts[:-1], parts[1:]):
+                    if l2 >= len(radii):
+                        break
+                    r1 = radii[l1]
+                    r2 = radii[l2]
+                    if r1 != HOUSE_IN_RADIUS:
+                        r1 -= min(BRIDGE_RADIUS, step_radius / 4)
+                    if r2 != radius:
+                        r2 += min(BRIDGE_RADIUS, step_radius / 4)
+                    draw_spoke(draw, r1, r2, angle, 8)
+
+
+def draw_improved_aspects(draw: ImageDraw.Draw, horoscope: Horoscope, settings: RenderSettings):
+    positions = merge_conjunctions(draw, horoscope, settings)    
+    arcs = get_aspect_arcs(positions, horoscope)
+
+    collision_matrix = [[check_arc_collision(a1, a2) for a1 in arcs] for a2 in arcs]
+    arc_groups = get_arc_groups(arcs, collision_matrix)
+
+    segments = get_arc_bridged_segments(arcs, collision_matrix, arc_groups)
+    draw_arc_aspects(draw, arcs, arc_groups, segments)
 
 
 def draw_horoscope(horoscope: Horoscope) -> Image.Image:
