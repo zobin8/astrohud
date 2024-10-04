@@ -80,6 +80,12 @@ def draw_spoke(draw: ImageDraw.Draw, r1: float, r2: float, phi: float, width: fl
     draw.line(a + b, fill=COLOR_WHITE, width=width)
 
 
+def draw_line(draw: ImageDraw.Draw, r1: float, r2: float, phi1: float, phi2: float, width: float):
+    a = polar_to_xy(r1, phi1)
+    b = polar_to_xy(r2, phi2)
+    draw.line(a + b, fill=COLOR_WHITE, width=width)
+
+
 def draw_chord(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: float):
     a = polar_to_xy(r, phi1)
     b = polar_to_xy(r, phi2)
@@ -276,8 +282,9 @@ def merge_conjunctions(draw: ImageDraw.Draw, horoscope: Horoscope, settings: Ren
     return positions
 
 
-def get_aspect_arcs(positions: Dict[Planet, float], horoscope: Horoscope) -> List[Tuple[float, float]]:
+def get_aspect_arcs(positions: Dict[Planet, float], horoscope: Horoscope) -> Tuple[List[Tuple[float, float]], List[Aspect]]:
     arcs = list()
+    aspects = list()
     for planets, aspect in horoscope.aspects.items():
         a1 = positions[planets.planet1]
         a2 = positions[planets.planet2]
@@ -287,7 +294,8 @@ def get_aspect_arcs(positions: Dict[Planet, float], horoscope: Horoscope) -> Lis
             arc = close_angles(a1, a2)
             if arc not in arcs:
                 arcs.append(arc)
-    return arcs
+                aspects.append(aspect.aspect)
+    return arcs, aspects
 
 
 def get_arc_groups(arcs: List[Tuple[float, float]], collision_matrix: List[List[bool]]) -> List[List[int]]:
@@ -321,7 +329,7 @@ def get_arc_bridged_segments(arcs: List[Tuple[float, float]], collision_matrix: 
     return segments
 
 
-def draw_arc_aspects(draw: ImageDraw.Draw, arcs: List[Tuple[float, float]], arc_groups: List[List[int]], segments: Dict[float, List[int]]):
+def draw_arc_aspects(draw: ImageDraw.Draw, arcs: List[Tuple[float, float]], arc_groups: List[List[int]], aspects: List[Aspect], segments: Dict[float, List[int]]):
     radius = HOUSE_IN_RADIUS
     radii = [HOUSE_IN_RADIUS]
     step_radius = HOUSE_IN_RADIUS / (len(arc_groups) + 1)
@@ -333,6 +341,9 @@ def draw_arc_aspects(draw: ImageDraw.Draw, arcs: List[Tuple[float, float]], arc_
             draw_arc(draw, radius, phi1, phi2, 8)
             draw_circle_cord(draw, radius, phi1, phi1, 8, BUBBLE_RADIUS)
             draw_circle_cord(draw, radius, phi2, phi2, 8, BUBBLE_RADIUS)
+
+            #if aspects[i] == Aspect.TRINE:
+            #    draw_line(draw, radius, radius - )
 
             for angle in arcs[i]:
                 parts = [0] + sorted(set(segments[angle])) + [-1]
@@ -350,13 +361,13 @@ def draw_arc_aspects(draw: ImageDraw.Draw, arcs: List[Tuple[float, float]], arc_
 
 def draw_improved_aspects(draw: ImageDraw.Draw, horoscope: Horoscope, settings: RenderSettings):
     positions = merge_conjunctions(draw, horoscope, settings)    
-    arcs = get_aspect_arcs(positions, horoscope)
+    arcs, aspects = get_aspect_arcs(positions, horoscope)
 
     collision_matrix = [[check_arc_collision(a1, a2) for a1 in arcs] for a2 in arcs]
     arc_groups = get_arc_groups(arcs, collision_matrix)
 
     segments = get_arc_bridged_segments(arcs, collision_matrix, arc_groups)
-    draw_arc_aspects(draw, arcs, arc_groups, segments)
+    draw_arc_aspects(draw, arcs, arc_groups, aspects, segments)
 
 
 def draw_horoscope(horoscope: Horoscope) -> Image.Image:
