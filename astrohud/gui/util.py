@@ -43,6 +43,7 @@ PLANET_2_RADIUS = MAX_RADIUS * 0.6
 TIP_RADIUS = MAX_RADIUS * 0.015
 BUBBLE_RADIUS = MAX_RADIUS * 0.005
 BRIDGE_RADIUS = MAX_RADIUS * 0.02
+ASPECT_TIP_RADIUS = MAX_RADIUS * 0.02
 
 
 NUDGE_ANGLE = 4
@@ -80,12 +81,6 @@ def draw_spoke(draw: ImageDraw.Draw, r1: float, r2: float, phi: float, width: fl
     draw.line(a + b, fill=COLOR_WHITE, width=width)
 
 
-def draw_line(draw: ImageDraw.Draw, r1: float, r2: float, phi1: float, phi2: float, width: float):
-    a = polar_to_xy(r1, phi1)
-    b = polar_to_xy(r2, phi2)
-    draw.line(a + b, fill=COLOR_WHITE, width=width)
-
-
 def draw_chord(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, width: float):
     a = polar_to_xy(r, phi1)
     b = polar_to_xy(r, phi2)
@@ -107,6 +102,32 @@ def draw_circle_cord(draw: ImageDraw.Draw, r: float, phi1: float, phi2: float, w
     #actual_r2 = max(r2 / 2, min_size)
 
     draw.circle(mid, min_size, width=width, fill=COLOR_WHITE, outline=COLOR_WHITE)
+
+
+def draw_aspect_tip(draw: ImageDraw.Draw, rho: float, phi: float, aspect: Aspect, dir: int, width: float):
+    tip_radius = ASPECT_TIP_RADIUS
+    if aspect == Aspect.TRINE:
+        tip_radius *= 1.3
+    
+    angle_diff = dir * (tip_radius * 180 / math.pi / rho)
+    a = polar_to_xy(rho, phi)
+    b = polar_to_xy(rho + tip_radius, phi)
+    c = polar_to_xy(rho, phi + angle_diff)
+    d = polar_to_xy(rho + tip_radius, phi + angle_diff)
+
+    #if aspect == Aspect.SEXTILE:
+    #    draw.line(a + d, fill=COLOR_WHITE, width=width)
+    if aspect == Aspect.SQUARE:
+        draw.line(b + d, fill=COLOR_WHITE, width=width)
+        draw.line(c + d, fill=COLOR_WHITE, width=width)
+    elif aspect == Aspect.TRINE:
+        draw.line(b + c, fill=COLOR_WHITE, width=width)
+    elif aspect == Aspect.OPPOSITION:
+        xy_min = a[0] - tip_radius, a[1] - tip_radius
+        xy_max = a[0] + tip_radius, a[1] + tip_radius
+        a_start = 180 - phi
+        a_stop = a_start - (dir * 90)
+        draw.arc(xy_min + xy_max, min(a_start, a_stop), max(a_start, a_stop), fill=COLOR_WHITE, width=width)
 
 
 def label_point(draw: ImageDraw.Draw, rho: float, phi: float, label: Union[str, Enum], small: bool = False):
@@ -341,9 +362,8 @@ def draw_arc_aspects(draw: ImageDraw.Draw, arcs: List[Tuple[float, float]], arc_
             draw_arc(draw, radius, phi1, phi2, 8)
             draw_circle_cord(draw, radius, phi1, phi1, 8, BUBBLE_RADIUS)
             draw_circle_cord(draw, radius, phi2, phi2, 8, BUBBLE_RADIUS)
-
-            #if aspects[i] == Aspect.TRINE:
-            #    draw_line(draw, radius, radius - )
+            draw_aspect_tip(draw, radius, phi1, aspects[i], -1, 8)
+            draw_aspect_tip(draw, radius, phi2, aspects[i], 1, 8)
 
             for angle in arcs[i]:
                 parts = [0] + sorted(set(segments[angle])) + [-1]
