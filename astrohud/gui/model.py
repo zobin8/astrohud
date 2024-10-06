@@ -1,7 +1,11 @@
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Tuple
 from dataclasses import dataclass
+
+from astrohud.astro.enums import Sign
+from astrohud.astro.enums import House
 
 
 @dataclass
@@ -9,7 +13,8 @@ class RenderSettings:
     """Settings for drawing the horoscope"""
 
     asc_angle: float
-    cusps: List[float]
+    signs: List[Tuple[Sign, float]]
+    cusps: List[Tuple[House, float]]
 
 
 class UnionFind:

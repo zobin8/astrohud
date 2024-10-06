@@ -74,3 +74,4 @@ def print_horoscope(date: datetime, horoscope: Horoscope):
     for row in table:
         row = [f'{cell:<20}' for cell in row]
         print(''.join(row))
+

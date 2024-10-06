@@ -188,7 +188,7 @@ def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float]) ->
     return cross > 0
 
 
-def nudge_coords(phi: float, avoid: float) -> float:
+def nudge_coords(phi: float, avoid: List[float]) -> float:
     a = find_collision(phi, avoid)
     if a is None:
         return phi
@@ -232,35 +232,39 @@ def draw_structure(draw: ImageDraw.Draw, settings: RenderSettings):
     draw_circle(draw, HOUSE_OUT_RADIUS)
     draw_circle(draw, HOUSE_IN_RADIUS)
     
-    for x in range(12):
-        phi = (x * 30) - settings.asc_angle
+    next_signs = settings.signs[1:] + [settings.signs[0]]
+    for i, sign in enumerate(settings.signs):
+        phi = sign[1] - settings.asc_angle
+        phi2 = next_signs[i][1] - settings.asc_angle
         draw_spoke(draw, ZODIAC_IN_RADIUS, ZODIAC_OUT_RADIUS, phi, 8)
-        label_quad(draw, ZODIAC_IN_RADIUS, ZODIAC_OUT_RADIUS, phi, phi + 30, Sign(x))
+        label_quad(draw, ZODIAC_IN_RADIUS, ZODIAC_OUT_RADIUS, phi, phi2, sign[0])
 
 
 def draw_houses(draw: ImageDraw.Draw, settings: RenderSettings):
     next_cusps = settings.cusps[1:] + [settings.cusps[0]]
     spoke_labels = ['A', 'I', 'D', 'M']
-    for x in range(len(settings.cusps)):
-        phi = settings.cusps[x] - settings.asc_angle
-        phi_2 = next_cusps[x] - settings.asc_angle
+    for x, cusp in enumerate(settings.cusps):
+        phi = cusp[1] - settings.asc_angle
+        phi_2 = next_cusps[x][1] - settings.asc_angle
         width = 8
-        if x % 3 == 0:
+        if (cusp[0].value - 1) % 3 == 0:
             width = 15
             label_width = (HOUSE_OUT_RADIUS - HOUSE_IN_RADIUS) / 3
-            label_quad(draw, HOUSE_IN_RADIUS, HOUSE_OUT_RADIUS, phi, phi, spoke_labels[x // 3], True)
+            label =  spoke_labels[(cusp[0].value - 1) // 3]
+            label_quad(draw, HOUSE_IN_RADIUS, HOUSE_OUT_RADIUS, phi, phi, label, True)
             draw_spoke(draw, HOUSE_OUT_RADIUS - label_width, ZODIAC_IN_RADIUS, phi, width)
             draw_spoke(draw, HOUSE_IN_RADIUS + label_width, HOUSE_IN_RADIUS, phi, width)
         else:
             draw_spoke(draw, HOUSE_IN_RADIUS, ZODIAC_IN_RADIUS, phi, width)
-        label_quad(draw, HOUSE_IN_RADIUS, HOUSE_OUT_RADIUS, phi, phi_2, str(x + 1))
+        label_quad(draw, HOUSE_IN_RADIUS, HOUSE_OUT_RADIUS, phi, phi_2, str(cusp[0].value))
 
 
 def draw_planets(draw: ImageDraw.Draw, horoscope: Horoscope, settings: RenderSettings):
     placed_planets = []
+    avoid = [v for _, v in settings.cusps]
     for planet, horo in horoscope.planets.items():
         phi = horo.position.abs_angle - settings.asc_angle
-        nudge_phi = nudge_coords(horo.position.abs_angle, settings.cusps) - settings.asc_angle
+        nudge_phi = nudge_coords(horo.position.abs_angle, avoid) - settings.asc_angle
         planet_radius = PLANET_1_RADIUS
         if find_collision(nudge_phi, placed_planets):
             planet_radius = PLANET_2_RADIUS
@@ -395,11 +399,13 @@ def draw_horoscope(horoscope: Horoscope) -> Image.Image:
     img = Image.new("RGBA", (width, width), COLOR_ALPHA)
     draw = ImageDraw.Draw(img)
     asc_angle = horoscope.ascending.abs_angle
-    cusps = [horoscope.cusps[h] for h in sorted(horoscope.cusps.keys(), key=lambda x: x.value)]
+    cusps = list(sorted([(k, v) for k, v in horoscope.cusps.items()], key=lambda t: t[1]))
+    signs = list(sorted([(k, v) for k, v in horoscope.signs.items()], key=lambda t: t[1]))
 
     settings = RenderSettings(
         asc_angle=asc_angle,
         cusps=cusps,
+        signs=signs,
     )
 
     draw_structure(draw, settings)

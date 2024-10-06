@@ -14,6 +14,7 @@ class Sign(Enum):
     CAPRICORN = 9
     AQUARIUS = 10
     PISCES = 11
+    OPHIUCHUS = 12
 
 
 class Planet(Enum):

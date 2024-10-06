@@ -22,16 +22,18 @@ def default_settings(function):
     @click.option('-o', '--orb-limit', type=float, default=2, show_default=True, help='Maximum orb limit for aspects, in degrees.')
     @click.option('-l', '--location', type=float, nargs=2, default=(LATITUDE, LONGITUDE), help='Latitude, Longitude coordinates for location. Defaults to Davis, CA')
     @click.option('--sidereal/--tropical', default=True, is_flag=True, show_default=True, help='Use the sidereal zodiac instead of tropical')
+    @click.option('--iau/--no-iau', default=False, is_flag=True, show_default=True, help='Use the IAU zodiac. Overrides sidereal/tropical')
     @click.option('--aspects/--no-aspects', default=True, is_flag=True, show_default=True, help='Calculate planetary aspects')
     @click.option(
         '--house-sys', default='P', type=click.Choice(['W', 'P', 'N'], case_sensitive=False), show_default=True,
         help='House system. Can be Whole, Placidus, or None.'
     )
-    def wrapper(orb_limit: float, location: Tuple[float, float], sidereal: bool, aspects: bool, house_sys: bytes, **kwargs):
+    def wrapper(orb_limit: float, location: Tuple[float, float], sidereal: bool, iau: bool, aspects: bool, house_sys: bytes, **kwargs):
         settings = HoroscopeSettings(
             orb_limit=orb_limit,
             location=location,
-            sidereal=sidereal,
+            sidereal=sidereal and not iau,
+            iau=iau,
             aspects=aspects,
             house_sys=bytes(house_sys, 'latin1'),
         )

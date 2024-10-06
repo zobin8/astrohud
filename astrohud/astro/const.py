@@ -19,6 +19,7 @@ RULERS = {
     Sign.CAPRICORN: Planet.SATURN,
     Sign.AQUARIUS: Planet.URANUS,
     Sign.PISCES: Planet.NEPTUNE,
+    Sign.OPHIUCHUS: Planet.PLUTO,
 }
 
 

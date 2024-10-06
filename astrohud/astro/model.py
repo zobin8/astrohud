@@ -116,6 +116,7 @@ class Horoscope(BaseMatchable):
 
     planets: Dict[Planet, PlanetHoroscope]
     ascending: SignPosition
+    signs: Dict[Sign, float]
     cusps: Dict[House, float]
     aspects: Dict[PlanetTuple, AspectHoroscope]
 
@@ -127,5 +128,6 @@ class HoroscopeSettings:
     orb_limit: float
     location: Tuple[float, float]
     sidereal: bool
+    iau: bool
     aspects: bool
     house_sys: bytes
