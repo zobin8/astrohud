@@ -192,9 +192,9 @@ def get_all_aspects(planets: Dict[Planet, PlanetHoroscope], orb_limit: float) ->
     return out
 
 
-def get_planet_dignity(planet: Planet, position: SignPosition) -> Dignity:
+def get_planet_dignity(planet: Planet, position: SignPosition, signs: Dict[Sign, float]) -> Dignity:
     sign = position.sign
-    opposite = Sign((position.sign.value + 6) % 12)
+    opposite, _ = split_deg(position.abs_angle + 180, signs)
     if RULERS[sign] == planet:
         return Dignity.DIGNITY
     if RULERS[opposite] == planet:
@@ -215,7 +215,7 @@ def get_horoscope(date: datetime, settings: HoroscopeSettings) -> Horoscope:
     planets = dict()
     for planet in list(Planet):
         signPos = get_planet_pos(ut, planet, signs, cusps, settings.sidereal)
-        dignity = get_planet_dignity(planet, signPos)
+        dignity = get_planet_dignity(planet, signPos, signs)
         planets[planet] = PlanetHoroscope(
             position=signPos,
             dignity=dignity,
