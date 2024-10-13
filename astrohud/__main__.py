@@ -6,6 +6,7 @@ import click
 import json
 
 from astrohud.astro.model import HoroscopeSettings
+from astrohud.astro.const import HOUSE_SYSTEMS
 from astrohud.astro.util import get_horoscope
 from astrohud.astro.util import find_datetime_range
 from astrohud.cli.util import print_horoscope
@@ -16,6 +17,7 @@ from astrohud.gui.util import overlay_image
 
 LATITUDE = 38.5595886
 LONGITUDE = -121.754827
+HOUSE_SYS_NAMES = ', '.join([f'{v} ({k})' for k, v in HOUSE_SYSTEMS.items()])
 
 
 def default_settings(function):
@@ -25,8 +27,8 @@ def default_settings(function):
     @click.option('--iau/--no-iau', default=False, is_flag=True, show_default=True, help='Use the IAU zodiac. Overrides sidereal/tropical')
     @click.option('--aspects/--no-aspects', default=True, is_flag=True, show_default=True, help='Calculate planetary aspects')
     @click.option(
-        '--house-sys', default='P', type=click.Choice(['W', 'P', 'N'], case_sensitive=False), show_default=True,
-        help='House system. Can be Whole, Placidus, or None.'
+        '--house-sys', default='P', type=click.Choice(HOUSE_SYSTEMS.keys(), case_sensitive=False), show_default=True,
+        help=f'House system. Can be: {HOUSE_SYS_NAMES}'
     )
     def wrapper(orb_limit: float, location: Tuple[float, float], sidereal: bool, iau: bool, aspects: bool, house_sys: bytes, **kwargs):
         settings = HoroscopeSettings(

@@ -51,6 +51,7 @@ ELEMENT_ASSOCIATION = {
     Sign.VIRGO: Element.Earth,
     Sign.LIBRA: Element.AIR,
     Sign.SCORPIO: Element.Water,
+    Sign.OPHIUCHUS: Element.Water,
     Sign.SAGITTARIUS: Element.FIRE,
     Sign.CAPRICORN: Element.Earth,
     Sign.AQUARIUS: Element.AIR,
@@ -67,6 +68,7 @@ MODALITY_ASSOCIATIONS = {
     Sign.VIRGO: Modality.MUTABLE,
     Sign.LIBRA: Modality.CARDINAL,
     Sign.SCORPIO: Modality.FIXED,
+    Sign.OPHIUCHUS: Modality.FIXED,
     Sign.SAGITTARIUS: Modality.MUTABLE,
     Sign.CAPRICORN: Modality.CARDINAL,
     Sign.AQUARIUS: Modality.FIXED,
@@ -80,4 +82,16 @@ ASPECT_DEGREES = {
     Aspect.SQUARE: 90,
     Aspect.TRINE: 120,
     Aspect.OPPOSITION: 180,
+}
+
+
+HOUSE_SYSTEMS = {
+    'P': 'Placidus',
+    'K': 'Koch',
+    'O': 'Porphyrius',
+    'R': 'Regiomontanus',
+    'C': 'Campanus',
+    'A': 'Equal (1 is Ascendant)',
+    'W': 'Whole Signs',
+    'N': 'Equal (1 is Aries)',
 }

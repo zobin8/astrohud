@@ -47,6 +47,7 @@ ASPECT_TIP_RADIUS = MAX_RADIUS * 0.02
 
 
 NUDGE_ANGLE = 4
+COLLISION_ANGLE = 4
 
 
 FONT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'font/HackNerdFont-Regular.ttf')
@@ -170,6 +171,15 @@ def sort_angles(phi1: float, phi2: float) -> Tuple[float, float]:
     return phi1, phi2
 
 
+def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float]) -> bool:
+    comp_start = compare_angles(arc1[0], arc2[0])
+    if comp_start < 0:
+        cross = compare_angles(arc1[0], arc2[1]) + COLLISION_ANGLE
+    else:
+        cross = compare_angles(arc2[0], arc1[1]) + COLLISION_ANGLE
+    return cross > 0
+
+
 def find_collision(phi: float, avoid: List[float]) -> Optional[float]:
     for a in avoid:
         a, phi = close_angles(a, phi)
@@ -177,15 +187,6 @@ def find_collision(phi: float, avoid: List[float]) -> Optional[float]:
         if abs(a - phi) < NUDGE_ANGLE:
             return a
     return None
-
-
-def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float]) -> bool:
-    comp_start = compare_angles(arc1[0], arc2[0])
-    if comp_start < 0:
-        cross = compare_angles(arc1[0], arc2[1]) + NUDGE_ANGLE
-    else:
-        cross = compare_angles(arc2[0], arc1[1]) + NUDGE_ANGLE
-    return cross > 0
 
 
 def nudge_coords(phi: float, avoid: List[float]) -> float:
