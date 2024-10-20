@@ -1,3 +1,5 @@
+"""Models for horoscopes"""
+
 from dataclasses import dataclass
 from typing import Dict
 

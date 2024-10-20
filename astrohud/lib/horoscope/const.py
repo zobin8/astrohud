@@ -1,3 +1,5 @@
+"""Constants for horoscopes"""
+
 from collections import defaultdict
 
 from astrohud.lib.ephemeris.enums import Planet
