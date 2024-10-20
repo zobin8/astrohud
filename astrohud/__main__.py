@@ -5,13 +5,13 @@ from typing import Tuple
 import click
 import json
 
-from astrohud.astro.model import HoroscopeSettings
-from astrohud.astro.enums import Zodiac
 from astrohud.astro.const import HOUSE_SYSTEMS
-from astrohud.astro.util import get_horoscope
+from astrohud.astro.enums import Zodiac
 from astrohud.astro.util import find_datetime_range
+from astrohud.astro.util import get_horoscope
 from astrohud.cli.util import print_horoscope
 from astrohud.cli.util import print_range
+from astrohud.ephemeris.models import HoroscopeSettings
 from astrohud.gui.util import draw_horoscope
 from astrohud.gui.util import overlay_image
 
@@ -35,11 +35,12 @@ def default_settings(function):
         help=f'House system. Can be: {HOUSE_SYS_NAMES}'
     )
     def wrapper(orb_limit: float, location: Tuple[float, float], zodiac: str, aspects: bool, house_sys: bytes, **kwargs):
+        if not aspects:
+            orb_limit = -1
         settings = HoroscopeSettings(
             orb_limit=orb_limit,
             location=location,
             zodiac=getattr(Zodiac, zodiac.upper()),
-            aspects=aspects,
             house_sys=bytes(house_sys, 'latin1'),
         )
         return function(settings=settings, **kwargs)

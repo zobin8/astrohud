@@ -13,11 +13,11 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
-from astrohud.astro.model import Horoscope
 from astrohud.astro.enums import Aspect
 from astrohud.astro.enums import Planet
 from astrohud.gui.model import RenderSettings
 from astrohud.gui.model import UnionFind
+from astrohud.horoscope.models import Horoscope
 
 
 COLOR_ALPHA = (255, 255, 255, 0)
@@ -399,7 +399,7 @@ def draw_horoscope(horoscope: Horoscope) -> Image.Image:
     img = Image.new("RGBA", (width, width), COLOR_ALPHA)
     draw = ImageDraw.Draw(img)
     asc_angle = horoscope.ascending.abs_angle
-    cusps = list(sorted([(k, v) for k, v in horoscope.cusps.items()], key=lambda t: t[1]))
+    cusps = list(sorted([(k, v) for k, v in horoscope.houses.items()], key=lambda t: t[1]))
     signs = list(sorted([(k, v) for k, v in horoscope.signs.items()], key=lambda t: t[1]))
 
     settings = RenderSettings(

@@ -142,6 +142,7 @@ class Modality(Enum):
 
 
 class Aspect(Enum):
+    NONE = -1
     CONJUNCTION = 0
     SEXTILE = 1
     SQUARE = 2
