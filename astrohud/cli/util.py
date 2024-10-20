@@ -1,8 +1,8 @@
 from datetime import datetime
 from datetime import timedelta
 
-from astrohud.astro.util import approx_filter
-from astrohud.astro.util import get_all_horoscopes
+from astrohud.search.util import approx_filter
+from astrohud.search.util import get_all_horoscopes
 from astrohud.ephemeris.models import EpheSettings
 from astrohud.horoscope.models import Horoscope
 

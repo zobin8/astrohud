@@ -4,15 +4,16 @@ from typing import Tuple
 import click
 import json
 
-from astrohud.ephemeris.enums import Zodiac
-from astrohud.astro.util import find_datetime_range
-from astrohud.astro.util import get_horoscope
+from astrohud.search.util import find_datetime_range
 from astrohud.cli.util import print_horoscope
 from astrohud.cli.util import print_range
 from astrohud.ephemeris.const import HOUSE_SYSTEMS
+from astrohud.ephemeris.enums import Zodiac
+from astrohud.ephemeris.models import EpheDate
 from astrohud.ephemeris.models import EpheSettings
 from astrohud.gui.util import draw_horoscope
 from astrohud.gui.util import overlay_image
+from astrohud.horoscope.models import Horoscope
 
 
 LATITUDE = 38.5595886
@@ -97,7 +98,7 @@ def find(settings: EpheSettings, start_date: datetime, end_date: datetime, day_f
 def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], background: Tuple[str]):
     date = date.astimezone(timezone.utc)
 
-    horo = get_horoscope(date=date, settings=settings)
+    horo = Horoscope(ed=EpheDate(date), settings=settings)
     print_horoscope(date, horo)
 
     for i, save_path in enumerate(save_img):

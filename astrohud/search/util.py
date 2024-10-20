@@ -10,11 +10,6 @@ from astrohud.ephemeris.models import EpheSettings
 from astrohud.horoscope.models import Horoscope
 
 
-def get_horoscope(date: datetime, settings: EpheSettings) -> Horoscope:
-    ed = EpheDate(date)
-    return Horoscope(ed, settings)
-
-
 def get_all_horoscopes(
     start_date: datetime,
     end_date: datetime,
@@ -24,7 +19,7 @@ def get_all_horoscopes(
     date = start_date
     out = []
     while date <= end_date:
-        horo = get_horoscope(date, settings)
+        horo = Horoscope(EpheDate(date), settings)
         out.append((date, horo))
         date += step
     return out
