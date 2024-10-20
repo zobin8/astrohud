@@ -4,16 +4,16 @@ from typing import Tuple
 import click
 import json
 
-from astrohud.search.util import find_datetime_range
+from astrohud.lib.search.util import find_datetime_range
 from astrohud.cli.util import print_horoscope
 from astrohud.cli.util import print_range
-from astrohud.ephemeris.const import HOUSE_SYSTEMS
-from astrohud.ephemeris.enums import Zodiac
-from astrohud.ephemeris.models import EpheDate
-from astrohud.ephemeris.models import EpheSettings
+from astrohud.lib.ephemeris.const import HOUSE_SYSTEMS
+from astrohud.lib.ephemeris.enums import Zodiac
+from astrohud.lib.ephemeris.models import EpheDate
+from astrohud.lib.ephemeris.models import EpheSettings
 from astrohud.gui.util import draw_horoscope
 from astrohud.gui.util import overlay_image
-from astrohud.horoscope.models import Horoscope
+from astrohud.lib.horoscope.models import Horoscope
 
 
 LATITUDE = 38.5595886

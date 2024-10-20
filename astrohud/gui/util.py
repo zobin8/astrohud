@@ -13,11 +13,11 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
-from astrohud.horoscope.enums import Aspect
-from astrohud.ephemeris.enums import Planet
+from astrohud.lib.horoscope.enums import Aspect
+from astrohud.lib.ephemeris.enums import Planet
 from astrohud.gui.model import RenderSettings
 from astrohud.gui.model import UnionFind
-from astrohud.horoscope.models import Horoscope
+from astrohud.lib.horoscope.models import Horoscope
 
 
 COLOR_ALPHA = (255, 255, 255, 0)

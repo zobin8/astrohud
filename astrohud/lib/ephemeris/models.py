@@ -8,18 +8,18 @@ import os
 
 import swisseph as swe
 
-from astrohud._base.models import BaseMatchable
-from astrohud._base.models import BaseSplitter
-from astrohud._base.models import Splitter2D
-from astrohud.ephemeris.enums import House
-from astrohud.ephemeris.enums import Planet
-from astrohud.ephemeris.enums import Sign
-from astrohud.ephemeris.enums import Zodiac
+from astrohud.lib._base.models import BaseMatchable
+from astrohud.lib._base.models import BaseSplitter
+from astrohud.lib._base.models import Splitter2D
+from astrohud.lib.ephemeris.enums import House
+from astrohud.lib.ephemeris.enums import Planet
+from astrohud.lib.ephemeris.enums import Sign
+from astrohud.lib.ephemeris.enums import Zodiac
 
 
 def init_ephe():
     dirname = os.path.dirname(__file__)
-    ephe_path = os.path.join(dirname, '../../submodules/swisseph/ephe')
+    ephe_path = os.path.join(dirname, '../../../submodules/swisseph/ephe')
     swe.set_ephe_path(ephe_path)
 
 

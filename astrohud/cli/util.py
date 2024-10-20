@@ -1,10 +1,10 @@
 from datetime import datetime
 from datetime import timedelta
 
-from astrohud.search.util import approx_filter
-from astrohud.search.util import get_all_horoscopes
-from astrohud.ephemeris.models import EpheSettings
-from astrohud.horoscope.models import Horoscope
+from astrohud.lib.search.util import approx_filter
+from astrohud.lib.search.util import get_all_horoscopes
+from astrohud.lib.ephemeris.models import EpheSettings
+from astrohud.lib.horoscope.models import Horoscope
 
 
 def print_range(

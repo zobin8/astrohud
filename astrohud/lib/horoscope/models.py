@@ -1,23 +1,23 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from astrohud._base.models import BaseMatchable
-from astrohud._base.models import BaseSplitter
-from astrohud.horoscope.const import ASPECT_DEGREES
-from astrohud.horoscope.const import EXALTATIONS
-from astrohud.horoscope.const import RULERS
-from astrohud.horoscope.enums import Aspect
-from astrohud.horoscope.enums import Dignity
-from astrohud.horoscope.enums import Dignity
-from astrohud.ephemeris.enums import House
-from astrohud.ephemeris.enums import Planet
-from astrohud.ephemeris.enums import Sign
-from astrohud.ephemeris.enums import Zodiac
-from astrohud.constellations.models import SignSplitter
-from astrohud.ephemeris.models import EpheDate
-from astrohud.ephemeris.models import HouseSplitter
-from astrohud.ephemeris.models import EpheSettings
-from astrohud.ephemeris.models import SignPosition
+from astrohud.lib._base.models import BaseMatchable
+from astrohud.lib._base.models import BaseSplitter
+from astrohud.lib.horoscope.const import ASPECT_DEGREES
+from astrohud.lib.horoscope.const import EXALTATIONS
+from astrohud.lib.horoscope.const import RULERS
+from astrohud.lib.horoscope.enums import Aspect
+from astrohud.lib.horoscope.enums import Dignity
+from astrohud.lib.horoscope.enums import Dignity
+from astrohud.lib.ephemeris.enums import House
+from astrohud.lib.ephemeris.enums import Planet
+from astrohud.lib.ephemeris.enums import Sign
+from astrohud.lib.ephemeris.enums import Zodiac
+from astrohud.lib.constellations.models import SignSplitter
+from astrohud.lib.ephemeris.models import EpheDate
+from astrohud.lib.ephemeris.models import HouseSplitter
+from astrohud.lib.ephemeris.models import EpheSettings
+from astrohud.lib.ephemeris.models import SignPosition
 
 
 @dataclass(frozen=True)

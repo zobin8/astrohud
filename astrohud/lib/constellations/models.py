@@ -9,10 +9,10 @@ import os
 
 import pandas as pd
 
-from astrohud._base.models import Splitter2D
-from astrohud._base.models import Splitter3D
-from astrohud.ephemeris.enums import Sign
-from astrohud.ephemeris.enums import Zodiac
+from astrohud.lib._base.models import Splitter2D
+from astrohud.lib._base.models import Splitter3D
+from astrohud.lib.ephemeris.enums import Sign
+from astrohud.lib.ephemeris.enums import Zodiac
 
 
 CONSTELLATIONS: Dict[Sign, List[Tuple[float, float]]] = defaultdict(list)
@@ -21,7 +21,7 @@ CONSTELLATIONS: Dict[Sign, List[Tuple[float, float]]] = defaultdict(list)
 def init_constellations():
     dirname = os.path.dirname(__file__)
 
-    constellation_path = os.path.join(dirname, '../data/constellations_all.csv')
+    constellation_path = os.path.join(dirname, '../../data/constellations_all.csv')
     df = pd.read_csv(constellation_path)
     df['Angle'] = ((df.Seconds / 60 + df.Minutes) / 60 + df.Hours) * 15
     df['Sign'] = df.Sign.apply(lambda n: getattr(Sign, n.upper()))

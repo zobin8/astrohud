@@ -5,9 +5,9 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-from astrohud.ephemeris.models import EpheDate
-from astrohud.ephemeris.models import EpheSettings
-from astrohud.horoscope.models import Horoscope
+from astrohud.lib.ephemeris.models import EpheDate
+from astrohud.lib.ephemeris.models import EpheSettings
+from astrohud.lib.horoscope.models import Horoscope
 
 
 def get_all_horoscopes(

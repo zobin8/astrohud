@@ -4,8 +4,8 @@ from typing import List
 from typing import Tuple
 from dataclasses import dataclass
 
-from astrohud.ephemeris.enums import Sign
-from astrohud.ephemeris.enums import House
+from astrohud.lib.ephemeris.enums import Sign
+from astrohud.lib.ephemeris.enums import House
 
 
 @dataclass

@@ -1,7 +1,7 @@
 from collections import defaultdict
 
-from astrohud.ephemeris.enums import Planet
-from astrohud.ephemeris.enums import Sign
+from astrohud.lib.ephemeris.enums import Planet
+from astrohud.lib.ephemeris.enums import Sign
 
 from .enums import Aspect
 from .enums import Polarity
