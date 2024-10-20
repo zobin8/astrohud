@@ -1,8 +1,9 @@
 from collections import defaultdict
 
+from astrohud.ephemeris.enums import Planet
+from astrohud.ephemeris.enums import Sign
+
 from .enums import Aspect
-from .enums import Planet
-from .enums import Sign
 from .enums import Polarity
 from .enums import Modality
 from .enums import Element
@@ -85,16 +86,4 @@ ASPECT_DEGREES = {
     Aspect.SQUARE: 90,
     Aspect.TRINE: 120,
     Aspect.OPPOSITION: 180,
-}
-
-
-HOUSE_SYSTEMS = {
-    'P': 'Placidus',
-    'K': 'Koch',
-    'O': 'Porphyrius',
-    'R': 'Regiomontanus',
-    'C': 'Campanus',
-    'A': 'Equal (1 is Ascendant)',
-    'W': 'Whole Signs',
-    'N': 'Equal (1 is Aries)',
 }

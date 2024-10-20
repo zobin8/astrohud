@@ -3,20 +3,20 @@ from typing import Dict
 
 from astrohud._base.models import BaseMatchable
 from astrohud._base.models import BaseSplitter
-from astrohud.astro.const import ASPECT_DEGREES
-from astrohud.astro.const import EXALTATIONS
-from astrohud.astro.const import RULERS
-from astrohud.astro.enums import Aspect
-from astrohud.astro.enums import Dignity
-from astrohud.astro.enums import Dignity
-from astrohud.astro.enums import House
-from astrohud.astro.enums import Planet
-from astrohud.astro.enums import Sign
-from astrohud.astro.enums import Zodiac
+from astrohud.horoscope.const import ASPECT_DEGREES
+from astrohud.horoscope.const import EXALTATIONS
+from astrohud.horoscope.const import RULERS
+from astrohud.horoscope.enums import Aspect
+from astrohud.horoscope.enums import Dignity
+from astrohud.horoscope.enums import Dignity
+from astrohud.ephemeris.enums import House
+from astrohud.ephemeris.enums import Planet
+from astrohud.ephemeris.enums import Sign
+from astrohud.ephemeris.enums import Zodiac
 from astrohud.constellations.models import SignSplitter
 from astrohud.ephemeris.models import EpheDate
 from astrohud.ephemeris.models import HouseSplitter
-from astrohud.ephemeris.models import HoroscopeSettings
+from astrohud.ephemeris.models import EpheSettings
 from astrohud.ephemeris.models import SignPosition
 
 
@@ -96,7 +96,7 @@ class Horoscope(BaseMatchable):
     houses: Dict[House, float]
     aspects: Dict[PlanetTuple, AspectHoroscope]
 
-    def __init__(self, ed: EpheDate, settings: HoroscopeSettings):
+    def __init__(self, ed: EpheDate, settings: EpheSettings):
         signs = SignSplitter(ed.obliquity, settings.zodiac)
         houses = HouseSplitter(ed.ut, settings)
 

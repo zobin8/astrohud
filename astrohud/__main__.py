@@ -1,17 +1,16 @@
 from datetime import datetime
-from datetime import timedelta
 from datetime import timezone
 from typing import Tuple
 import click
 import json
 
-from astrohud.astro.const import HOUSE_SYSTEMS
-from astrohud.astro.enums import Zodiac
+from astrohud.ephemeris.enums import Zodiac
 from astrohud.astro.util import find_datetime_range
 from astrohud.astro.util import get_horoscope
 from astrohud.cli.util import print_horoscope
 from astrohud.cli.util import print_range
-from astrohud.ephemeris.models import HoroscopeSettings
+from astrohud.ephemeris.const import HOUSE_SYSTEMS
+from astrohud.ephemeris.models import EpheSettings
 from astrohud.gui.util import draw_horoscope
 from astrohud.gui.util import overlay_image
 
@@ -37,7 +36,7 @@ def default_settings(function):
     def wrapper(orb_limit: float, location: Tuple[float, float], zodiac: str, aspects: bool, house_sys: bytes, **kwargs):
         if not aspects:
             orb_limit = -1
-        settings = HoroscopeSettings(
+        settings = EpheSettings(
             orb_limit=orb_limit,
             location=location,
             zodiac=getattr(Zodiac, zodiac.upper()),
@@ -60,7 +59,7 @@ def main():
 @click.option('--day-filter', type=str, default=None, help='JSON filter file to pick the day (planet horoscopes)')
 @click.option('--time-filter', type=str, default=None, help='JSON filter file to pick the time (aspects, ascending, etc.)')
 @default_settings
-def find(settings: HoroscopeSettings, start_date: datetime, end_date: datetime, day_filter: str, time_filter: str):
+def find(settings: EpheSettings, start_date: datetime, end_date: datetime, day_filter: str, time_filter: str):
     start_date = start_date.astimezone(timezone.utc)
     end_date = end_date.astimezone(timezone.utc)
 
@@ -95,7 +94,7 @@ def find(settings: HoroscopeSettings, start_date: datetime, end_date: datetime, 
 @click.option('--save-img', type=click.Path(dir_okay=False, writable=True), multiple=True, help='If specified, save horoscope image to path.')
 @click.option('--background', type=click.Path(dir_okay=False, writable=True), multiple=True, help='If specified, overlay horoscope over image.')
 @default_settings
-def horo(settings: HoroscopeSettings, date: datetime, save_img: Tuple[str], background: Tuple[str]):
+def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], background: Tuple[str]):
     date = date.astimezone(timezone.utc)
 
     horo = get_horoscope(date=date, settings=settings)

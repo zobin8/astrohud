@@ -1,3 +1,5 @@
+"""Enums for ephemeris"""
+
 from enum import Enum
 
 
@@ -121,41 +123,6 @@ class House(Enum):
     AMBITION_10 = 10
     COMMUNITY_11 = 11
     UNCONSCIOUS_12 = 12
-
-
-class Element(Enum):
-    FIRE = 0
-    AIR = 1
-    Earth = 2
-    Water = 3
-
-
-class Polarity(Enum):
-    NEGATIVE = 0
-    POSITIVE = 1
-
-
-class Modality(Enum):
-    CARDINAL = 0
-    FIXED = 1
-    MUTABLE = 2
-
-
-class Aspect(Enum):
-    NONE = -1
-    CONJUNCTION = 0
-    SEXTILE = 1
-    SQUARE = 2
-    TRINE = 3
-    OPPOSITION = 4
-
-
-class Dignity(Enum):
-    DETRIMENT = 0
-    FALL = 1
-    NORMAL = 2
-    EXALTATION = 3
-    DIGNITY = 4
 
 
 class Zodiac(Enum):

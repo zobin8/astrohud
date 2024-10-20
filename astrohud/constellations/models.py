@@ -11,8 +11,8 @@ import pandas as pd
 
 from astrohud._base.models import Splitter2D
 from astrohud._base.models import Splitter3D
-from astrohud.astro.enums import Sign
-from astrohud.astro.enums import Zodiac
+from astrohud.ephemeris.enums import Sign
+from astrohud.ephemeris.enums import Zodiac
 
 
 CONSTELLATIONS: Dict[Sign, List[Tuple[float, float]]] = defaultdict(list)

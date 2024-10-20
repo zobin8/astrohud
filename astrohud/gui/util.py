@@ -13,8 +13,8 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
-from astrohud.astro.enums import Aspect
-from astrohud.astro.enums import Planet
+from astrohud.horoscope.enums import Aspect
+from astrohud.ephemeris.enums import Planet
 from astrohud.gui.model import RenderSettings
 from astrohud.gui.model import UnionFind
 from astrohud.horoscope.models import Horoscope

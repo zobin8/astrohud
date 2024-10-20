@@ -11,10 +11,10 @@ import swisseph as swe
 from astrohud._base.models import BaseMatchable
 from astrohud._base.models import BaseSplitter
 from astrohud._base.models import Splitter2D
-from astrohud.astro.enums import House
-from astrohud.astro.enums import Planet
-from astrohud.astro.enums import Sign
-from astrohud.astro.enums import Zodiac
+from astrohud.ephemeris.enums import House
+from astrohud.ephemeris.enums import Planet
+from astrohud.ephemeris.enums import Sign
+from astrohud.ephemeris.enums import Zodiac
 
 
 def init_ephe():
@@ -24,8 +24,8 @@ def init_ephe():
 
 
 @dataclass
-class HoroscopeSettings:
-    """Settings for rendering horoscopes"""
+class EpheSettings:
+    """Settings for ephemeris calculation"""
 
     orb_limit: float
     location: Tuple[float, float]
@@ -91,7 +91,7 @@ class SignPosition(BaseMatchable):
 
 
 class HouseSplitter(Splitter2D[House]):
-    def __init__(self, ut: float, settings: HoroscopeSettings):
+    def __init__(self, ut: float, settings: EpheSettings):
         """Constructor"""
         super().__init__()
         flag_args = dict()

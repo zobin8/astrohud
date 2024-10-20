@@ -6,11 +6,11 @@ from typing import List
 from typing import Tuple
 
 from astrohud.ephemeris.models import EpheDate
-from astrohud.ephemeris.models import HoroscopeSettings
+from astrohud.ephemeris.models import EpheSettings
 from astrohud.horoscope.models import Horoscope
 
 
-def get_horoscope(date: datetime, settings: HoroscopeSettings) -> Horoscope:
+def get_horoscope(date: datetime, settings: EpheSettings) -> Horoscope:
     ed = EpheDate(date)
     return Horoscope(ed, settings)
 
@@ -19,7 +19,7 @@ def get_all_horoscopes(
     start_date: datetime,
     end_date: datetime,
     step: timedelta,
-    settings: HoroscopeSettings,
+    settings: EpheSettings,
 ) -> List[Tuple[datetime, Horoscope]]:
     date = start_date
     out = []
@@ -35,7 +35,7 @@ def find_range(
     end_date: datetime,
     step: timedelta,
     filter: Dict[str, Any],
-    settings: HoroscopeSettings,
+    settings: EpheSettings,
 ) -> List[Tuple[datetime, datetime, timedelta]]:
     all_horos = get_all_horoscopes(
         start_date=start_date,
@@ -64,7 +64,7 @@ def find_datetime_range(
     end_date: datetime,
     day_filter: Dict[str, Any],
     time_filter: Dict[str, Any],
-    settings: HoroscopeSettings,
+    settings: EpheSettings,
 ) -> List[Tuple[datetime, datetime, timedelta]]:
     day_ranges = find_range(
         start_date=start_date,

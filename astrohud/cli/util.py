@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from astrohud.astro.util import approx_filter
 from astrohud.astro.util import get_all_horoscopes
-from astrohud.ephemeris.models import HoroscopeSettings
+from astrohud.ephemeris.models import EpheSettings
 from astrohud.horoscope.models import Horoscope
 
 
@@ -11,7 +11,7 @@ def print_range(
     start_date: datetime,
     end_date: datetime,
     step: timedelta,
-    settings: HoroscopeSettings,
+    settings: EpheSettings,
 ):
     all_horos = get_all_horoscopes(
         start_date=start_date,
