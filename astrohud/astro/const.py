@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from .enums import Aspect
 from .enums import Planet
 from .enums import Sign
@@ -6,7 +8,8 @@ from .enums import Modality
 from .enums import Element
 
 
-RULERS = {
+RULERS = defaultdict(lambda: None)
+RULERS.update({
     Sign.ARIES: Planet.MARS,
     Sign.TAURUS: Planet.VENUS,
     Sign.GEMINI: Planet.MERCURY,
@@ -20,7 +23,7 @@ RULERS = {
     Sign.AQUARIUS: Planet.URANUS,
     Sign.PISCES: Planet.NEPTUNE,
     Sign.OPHIUCHUS: Planet.PLUTO,
-}
+})
 
 
 EXALTATIONS = {

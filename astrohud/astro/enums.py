@@ -15,6 +15,82 @@ class Sign(Enum):
     AQUARIUS = 10
     PISCES = 11
     OPHIUCHUS = 12
+    ANDROMEDA = 13
+    ANTLIA = 14
+    APUS = 15
+    AQUILA = 16
+    ARA = 17
+    AURIGA = 18
+    BOOTES = 19
+    CAELUM = 20
+    CAMELOPARDALIS = 21
+    CANES_VENATICI = 22
+    CANIS_MAJOR = 23
+    CANIS_MINOR = 24
+    CARINA = 25
+    CASSIOPEIA = 26
+    CENTAURUS = 27
+    CEPHEUS = 28
+    CETUS = 29
+    CHAMAELEON = 30
+    CIRCINUS = 31
+    COLUMBA = 32
+    COMA_BERENICES = 33
+    CORONA_AUSTRALIS = 34
+    CORONA_BOREALIS = 35
+    CORVUS = 36
+    CRATER = 37
+    CRUX = 38
+    CYGNUS = 39
+    DELPHINUS = 40
+    DORADO = 41
+    DRACO = 42
+    EQUULEUS = 43
+    ERIDANUS = 44
+    FORNAX = 45
+    GRUS = 46
+    HERCULES = 47
+    HOROLOGIUM = 48
+    HYDRA = 49
+    HYDRUS = 50
+    INDUS = 51
+    LACERTA = 52
+    LEO_MINOR = 53
+    LEPUS = 54
+    LUPUS = 55
+    LYNX = 56
+    LYRA = 57
+    MENSA = 58
+    MICROSCOPIUM = 59
+    MONOCEROS = 60
+    MUSCA = 61
+    NORMA = 62
+    OCTANS = 63
+    ORION = 64
+    PAVO = 65
+    PEGASUS = 66
+    PERSEUS = 67
+    PHOENIX = 68
+    PICTOR = 69
+    PISCIS_AUSTRINUS = 70
+    PUPPIS = 71
+    PYXIS = 72
+    RETICULUM = 73
+    SAGITTA = 74
+    SCULPTOR = 75
+    SCUTUM = 76
+    SERPENS_CAPUT = 77
+    SERPENS_CAUDA = 78
+    SEXTANS = 79
+    TELESCOPIUM = 80
+    TRIANGULUM_AUSTRALE = 81
+    TRIANGULUM = 82
+    TUCANA = 83
+    URSA_MAJOR = 84
+    URSA_MINOR = 85
+    VELA = 86
+    VOLANS = 87
+    VULPECULA = 88
 
 
 class Planet(Enum):
@@ -72,9 +148,17 @@ class Aspect(Enum):
     TRINE = 3
     OPPOSITION = 4
 
+
 class Dignity(Enum):
     DETRIMENT = 0
     FALL = 1
     NORMAL = 2
     EXALTATION = 3
     DIGNITY = 4
+
+
+class Zodiac(Enum):
+    TROPICAL = 0
+    SIDEREAL = 1
+    IAU = 2
+    PLANETARIUM = 3

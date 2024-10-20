@@ -10,6 +10,7 @@ from astrohud.astro.enums import Dignity
 from astrohud.astro.enums import House
 from astrohud.astro.enums import Planet
 from astrohud.astro.enums import Sign
+from astrohud.astro.enums import Zodiac
 
 
 class BaseMatchable(ABC):
@@ -72,7 +73,7 @@ class SignPosition(BaseMatchable):
 
     abs_angle: float    # degrees from start
     sign: Sign          # Sign
-    sign_angle: float   # degrees from sign
+    declination: float  # degrees from ecliptic
     speed: float        # degrees / day
     house: House        # House
 
@@ -127,7 +128,6 @@ class HoroscopeSettings:
 
     orb_limit: float
     location: Tuple[float, float]
-    sidereal: bool
-    iau: bool
+    zodiac: Zodiac
     aspects: bool
     house_sys: bytes

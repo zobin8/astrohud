@@ -16,7 +16,6 @@ from PIL import ImageFont
 from astrohud.astro.model import Horoscope
 from astrohud.astro.enums import Aspect
 from astrohud.astro.enums import Planet
-from astrohud.astro.enums import Sign
 from astrohud.gui.model import RenderSettings
 from astrohud.gui.model import UnionFind
 

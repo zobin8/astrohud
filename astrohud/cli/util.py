@@ -31,10 +31,10 @@ def print_range(
 
 def print_horoscope(date: datetime, horoscope: Horoscope):
     print(date.astimezone(None))
-    divider = ['=' * 20] * 6
+    divider = ['=' * 20] * 7
 
     # Planets
-    table = [['Planet', 'Sign', 'House', 'Dignity', 'Angle', 'Speed', ]]
+    table = [['Planet', 'Sign', 'House', 'Dignity', 'RA', 'Dec', 'Speed', ]]
     table.append(divider)
     for planet, signHoro in horoscope.planets.items():
         signPos = signHoro.position
@@ -43,7 +43,8 @@ def print_horoscope(date: datetime, horoscope: Horoscope):
             signPos.sign.name,
             signPos.house.name,
             signHoro.dignity.name,
-            f'{signPos.sign_angle:4.1f}°',
+            f'{signPos.abs_angle:4.1f}°',
+            f'{signPos.declination:4.1f}°',
             f'{signPos.speed:+6.2f} deg/day',
         ])
 
@@ -52,7 +53,7 @@ def print_horoscope(date: datetime, horoscope: Horoscope):
         horoscope.ascending.sign.name,
         horoscope.ascending.house.name,
         '',
-        f'{horoscope.ascending.sign_angle:4.1f}°',
+        f'{horoscope.ascending.abs_angle:4.1f}°',
         ''
     ])
 
