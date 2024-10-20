@@ -15,8 +15,8 @@ from PIL import ImageFont
 
 from astrohud.lib.horoscope.enums import Aspect
 from astrohud.lib.ephemeris.enums import Planet
-from astrohud.gui.model import RenderSettings
-from astrohud.gui.model import UnionFind
+from astrohud.gui.models import RenderSettings
+from astrohud.gui.models import UnionFind
 from astrohud.lib.horoscope.models import Horoscope
 
 
@@ -120,6 +120,7 @@ def draw_aspect_tip(draw: ImageDraw.Draw, rho: float, phi: float, aspect: Aspect
     if aspect == Aspect.SQUARE:
         draw.line(b + d, fill=COLOR_WHITE, width=width)
         draw.line(c + d, fill=COLOR_WHITE, width=width)
+        draw_circle_cord(draw, rho + tip_radius, phi + angle_diff, phi + angle_diff, 8, 3)
     elif aspect == Aspect.TRINE:
         draw.line(b + c, fill=COLOR_WHITE, width=width)
     elif aspect == Aspect.OPPOSITION:

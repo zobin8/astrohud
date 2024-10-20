@@ -101,13 +101,16 @@ def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], backgroun
     date = date.astimezone(timezone.utc)
 
     horo = Horoscope(ed=EpheDate(date), settings=settings)
-    print_horoscope(date, horo)
+    print(date.astimezone(None))
+    print_horoscope(horo)
 
-    for i, save_path in enumerate(save_img):
+    if save_img:
         img = draw_horoscope(horo)
-        if len(background) > i:
-            img = overlay_image(background[i], img)
-        img.save(save_path)
+        for i, save_path in enumerate(save_img):
+            img_i = img
+            if len(background) > i:
+                img_i = overlay_image(background[i], img_i)
+            img_i.save(save_path)
 
 
 if __name__ == '__main__':

@@ -24,13 +24,13 @@ def print_range(
     for date, horo in all_horos:
         approx = approx_filter(horo.to_json())
         if approx != last_approx:
-            print_horoscope(date, horo)
+            print(date.astimezone(None))
+            print_horoscope(horo)
             print()
             last_approx = approx
 
 
-def print_horoscope(date: datetime, horoscope: Horoscope):
-    print(date.astimezone(None))
+def print_horoscope(horoscope: Horoscope):
     divider = ['=' * 20] * 7
 
     # Planets
