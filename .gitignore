@@ -2,3 +2,4 @@ submodules
 __pycache__
 *.egg-info
 build
+tmp.png
