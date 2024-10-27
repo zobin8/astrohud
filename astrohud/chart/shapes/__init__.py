@@ -1,0 +1,1 @@
+"""Definitions for common shapes"""
