@@ -2,24 +2,30 @@
 
 from dataclasses import dataclass
 from typing import Dict
+from typing import List
+from typing import Tuple
 
 from astrohud.lib._base.models import BaseMatchable
 from astrohud.lib._base.models import BaseSplitter
-from astrohud.lib.horoscope.const import ASPECT_DEGREES
-from astrohud.lib.horoscope.const import EXALTATIONS
-from astrohud.lib.horoscope.const import RULERS
-from astrohud.lib.horoscope.enums import Aspect
-from astrohud.lib.horoscope.enums import Dignity
-from astrohud.lib.horoscope.enums import Dignity
+from astrohud.lib.constellations.models import SignSplitter
 from astrohud.lib.ephemeris.enums import House
 from astrohud.lib.ephemeris.enums import Planet
 from astrohud.lib.ephemeris.enums import Sign
 from astrohud.lib.ephemeris.enums import Zodiac
-from astrohud.lib.constellations.models import SignSplitter
 from astrohud.lib.ephemeris.models import EpheDate
-from astrohud.lib.ephemeris.models import HouseSplitter
 from astrohud.lib.ephemeris.models import EpheSettings
+from astrohud.lib.ephemeris.models import HouseSplitter
 from astrohud.lib.ephemeris.models import SignPosition
+from astrohud.lib.horoscope.const import ASPECT_DEGREES
+from astrohud.lib.horoscope.const import ELEMENT_ASSOCIATION
+from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
+from astrohud.lib.horoscope.const import EXALTATIONS
+from astrohud.lib.horoscope.const import RULERS
+from astrohud.lib.horoscope.const import TRIPLICITIES
+from astrohud.lib.horoscope.const import TRIPLICITY_TIME
+from astrohud.lib.horoscope.enums import Aspect
+from astrohud.lib.horoscope.enums import Dignity
+from astrohud.lib.horoscope.enums import Dignity
 
 
 @dataclass(frozen=True)
@@ -45,16 +51,37 @@ class PlanetHoroscope(BaseMatchable):
     position: SignPosition
     dignity: Dignity
     retrograde: bool
+    positive_score: float = 0
+    negative_score: float = 0
 
     def __init__(self, ed: EpheDate, planet: Planet, zodiac: Zodiac, signs: BaseSplitter[Sign], houses: BaseSplitter[House]):
         self.planet = planet
         self.position = SignPosition.from_planet(ed.ut, planet, zodiac, signs, houses)
         self.dignity = self._get_planet_dignity(signs)
         self.retrograde = self.position.speed < 0
+        self._assign_scores()
+
+    def add_aspect(self, aspect: Aspect):
+        self._add_scores(ESSENTIAL_SCORE[aspect])
+
+    def _assign_scores(self) -> Tuple[float, float]:
+        self._add_scores(ESSENTIAL_SCORE[self.dignity])
+
+    def _add_scores(self, scores: List[float]):
+        for score in scores:
+            if score > 0:
+                self.positive_score += score
+            if score < 0:
+                self.negative_score += score
 
     def _get_planet_dignity(self, signs: BaseSplitter[Sign]) -> Dignity:
         sign = self.position.sign
+        house = self.position.house
         opposite = signs.split(self.position.abs_angle + 180, -self.position.declination)
+        triplicity = None
+        if sign in ELEMENT_ASSOCIATION:
+            triplicity = TRIPLICITIES[ELEMENT_ASSOCIATION[sign]][TRIPLICITY_TIME[house]]
+
         if RULERS[sign] == self.planet:
             return Dignity.DIGNITY
         if RULERS[opposite] == self.planet:
@@ -64,6 +91,8 @@ class PlanetHoroscope(BaseMatchable):
                 return Dignity.EXALTATION
             if EXALTATIONS[self.planet][0] == opposite:
                 return Dignity.FALL
+        if self.planet == triplicity:
+            return Dignity.TRIPLICITY
         return Dignity.NORMAL
     
 
@@ -83,6 +112,8 @@ class AspectHoroscope(BaseMatchable):
             if orb < orb_limit:
                 self.aspect = aspect
                 self.orb = orb
+                p1.add_aspect(aspect)
+                p2.add_aspect(aspect)
                 return
             
         self.aspect = Aspect.NONE

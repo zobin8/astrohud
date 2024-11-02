@@ -34,5 +34,6 @@ class Dignity(Enum):
     DETRIMENT = 0
     FALL = 1
     NORMAL = 2
-    EXALTATION = 3
-    DIGNITY = 4
+    TRIPLICITY = 3
+    EXALTATION = 4
+    DIGNITY = 5

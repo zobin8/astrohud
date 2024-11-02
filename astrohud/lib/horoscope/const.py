@@ -4,11 +4,13 @@ from collections import defaultdict
 
 from astrohud.lib.ephemeris.enums import Planet
 from astrohud.lib.ephemeris.enums import Sign
+from astrohud.lib.ephemeris.enums import House
 
 from .enums import Aspect
-from .enums import Polarity
-from .enums import Modality
+from .enums import Dignity
 from .enums import Element
+from .enums import Modality
+from .enums import Polarity
 
 
 RULERS = defaultdict(lambda: None)
@@ -37,6 +39,30 @@ EXALTATIONS = {
     Planet.MARS: (Sign.CAPRICORN, 28),
     Planet.JUPITER: (Sign.CANCER, 15),
     Planet.SATURN: (Sign.LIBRA, 21),
+}
+
+
+TRIPLICITY_TIME = {
+    House.IDENTITY_1: 2,
+    House.MATERIAL_2: 1,
+    House.INTELLECT_3: 1,
+    House.ORIGINS_4: 1,
+    House.PLEASURE_5: 1,
+    House.HEALTH_6: 2,
+    House.PARTNERS_7: 2,
+    House.TRANSFORMATION_8: 0,
+    House.SPIRITUALITY_9: 0,
+    House.AMBITION_10: 0,
+    House.COMMUNITY_11: 0,
+    House.UNCONSCIOUS_12: 2,
+}
+
+
+TRIPLICITIES = {
+    Element.FIRE: (Planet.SUN, Planet.JUPITER, Planet.SATURN),
+    Element.Earth: (Planet.VENUS, Planet.MOON, Planet.MARS),
+    Element.AIR: (Planet.PALLAS, Planet.MERCURY, Planet.PLUTO),
+    Element.Water: (Planet.URANUS, Planet.NEPTUNE, Planet.ERIS),
 }
 
 
@@ -89,3 +115,19 @@ ASPECT_DEGREES = {
     Aspect.TRINE: 120,
     Aspect.OPPOSITION: 180,
 }
+
+
+ESSENTIAL_SCORE = defaultdict(list)
+ESSENTIAL_SCORE.update({
+    Aspect.CONJUNCTION: [5],
+    Aspect.TRINE: [3],
+    Aspect.SEXTILE: [2],
+    Aspect.OPPOSITION: [4, -4],
+    Aspect.SQUARE: [-3],
+
+    Dignity.DETRIMENT: [-5],
+    Dignity.FALL: [-4],
+    Dignity.TRIPLICITY: [3],
+    Dignity.EXALTATION: [4],
+    Dignity.DIGNITY: [5],
+})
