@@ -13,9 +13,9 @@ from astrohud.lib.ephemeris.const import HOUSE_SYSTEMS
 from astrohud.lib.ephemeris.enums import Zodiac
 from astrohud.lib.ephemeris.models import EpheDate
 from astrohud.lib.ephemeris.models import EpheSettings
-from astrohud.gui.util import draw_horoscope
-from astrohud.gui.util import overlay_image
 from astrohud.lib.horoscope.models import Horoscope
+from astrohud.chart.wheel.models import ClassicWheelChart
+from astrohud.chart.wheel.models import ModernWheelChart
 
 
 LATITUDE = 38.5595886
@@ -105,11 +105,14 @@ def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], backgroun
     print_horoscope(horo)
 
     if save_img:
-        img = draw_horoscope(horo)
+        chart = ModernWheelChart(horo)
+        chart.finish()
+        img = chart.img
+
         for i, save_path in enumerate(save_img):
             img_i = img
             if len(background) > i:
-                img_i = overlay_image(background[i], img_i)
+                img_i = chart.overlay_image(background[i])
             img_i.save(save_path)
 
 

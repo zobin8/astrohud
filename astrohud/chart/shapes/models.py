@@ -9,18 +9,18 @@ import numpy as np
 from PIL import Image
 from PIL import ImageFont
 
-from astrohud.chart._base.models import BaseShape
+from astrohud.chart._base.const import COLOR_ALPHA
+from astrohud.chart._base.const import COLOR_BLACK
+from astrohud.chart._base.const import COLOR_WHITE
 from astrohud.chart._base.models import BaseChart
 from astrohud.chart._base.models import BaseCoord
+from astrohud.chart._base.models import BaseShape
 from astrohud.chart._base.models import XY
 
 
-COLOR_ALPHA = (255, 255, 255, 0)
-COLOR_BLACK = (0, 0, 0, 255)
-COLOR_WHITE = (255, 255, 255, 255)
 
-FONT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'font/HackNerdFont-Regular.ttf')
-IMG_FOLDER =  os.path.join(os.path.dirname(os.path.dirname(__file__)), 'img')
+FONT_FILE = os.path.join(os.path.dirname(__file__), '../../font/HackNerdFont-Regular.ttf')
+IMG_FOLDER =  os.path.join(os.path.dirname(__file__), '../../img')
 BIG_FONT = ImageFont.truetype(FONT_FILE, size=96, encoding='unic')
 SMALL_FONT = ImageFont.truetype(FONT_FILE, size=48, encoding='unic')
 
@@ -30,13 +30,19 @@ class Circle(BaseShape):
     center: BaseCoord
     edge: BaseCoord
     width: float = 8
+    fill: bool = False
 
     def draw(self, chart: BaseChart):
         """Draw shape to chart"""
         center = chart.convert_coord(self.center)
         edge = chart.convert_coord(self.edge)
         radius = np.linalg.norm(center.array - edge.array)
-        chart.draw.circle(center.tuple, radius, width=self.width, outline=COLOR_WHITE)
+        
+        kwargs = dict()
+        if self.fill:
+            kwargs.update(fill=COLOR_WHITE)
+
+        chart.draw.circle(center.tuple, radius, width=self.width, outline=COLOR_WHITE, **kwargs)
 
 
 @dataclass(frozen=True)
@@ -66,12 +72,21 @@ class Arc(BaseShape):
         b = chart.convert_coord(self.b).array - center.array
 
         radius = np.linalg.norm(a)
-        diagonal = np.ones(2) * radius / np.sqrt(2) + (self.width / 2)
+        diagonal = np.sqrt(np.ones(2)) * radius + (self.width / 2)
         box_min = XY(array=center.array - diagonal)
         box_max = XY(array=center.array + diagonal)
 
-        phi1 = np.arctan2(a.y, a.x)
-        phi2 = np.arctan2(b.y, b.x)
+        phi1 = np.arctan2(a[1], a[0]) * 180 / np.pi
+        phi2 = np.arctan2(b[1], b[0]) * 180 / np.pi
+
+        # ZTODO angle math
+        while phi1 - 180 > phi2:
+            phi2 += 360
+        while phi1 + 180 < phi2:
+            phi2 -= 360
+
+        if phi1 > phi2:
+            phi1, phi2 = phi2, phi1
 
         chart.draw.arc(box_min.tuple + box_max.tuple, phi1, phi2, fill=COLOR_WHITE, width=self.width)
 

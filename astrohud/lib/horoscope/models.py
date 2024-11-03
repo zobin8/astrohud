@@ -109,7 +109,7 @@ class AspectHoroscope(BaseMatchable):
 
         for aspect, target_angle in ASPECT_DEGREES.items():
             orb = abs(angle - target_angle)
-            if orb < orb_limit:
+            if orb < orb_limit or (orb < 2 * orb_limit and aspect == Aspect.CONJUNCTION):
                 self.aspect = aspect
                 self.orb = orb
                 p1.add_aspect(aspect)
