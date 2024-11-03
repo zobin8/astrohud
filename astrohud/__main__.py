@@ -22,6 +22,10 @@ LATITUDE = 38.5595886
 LONGITUDE = -121.754827
 HOUSE_SYS_NAMES = ', '.join([f'{v} ({k})' for k, v in HOUSE_SYSTEMS.items()])
 ZODIAC_NAMES = [z.name for z in list(Zodiac)]
+STYLE_NAMES = {
+    'classic': ClassicWheelChart,
+    'modern': ModernWheelChart,
+}
 
 
 def default_settings(function):
@@ -96,16 +100,19 @@ def find(settings: EpheSettings, start_date: datetime, end_date: datetime, day_f
 @click.option('-d', '--date', type=click.DateTime(), default=datetime.now(timezone.utc), help='Date to use. Defaults to now.')
 @click.option('--save-img', type=click.Path(dir_okay=False, writable=True), multiple=True, help='If specified, save horoscope image to path.')
 @click.option('--background', type=click.Path(dir_okay=False, writable=True), multiple=True, help='If specified, overlay horoscope over image.')
+@click.option('--style', type=click.Choice(STYLE_NAMES.keys(), case_sensitive=False), default='modern', help='Printed chart style.')
 @default_settings
-def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], background: Tuple[str]):
+def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], background: Tuple[str], style: str):
     date = date.astimezone(timezone.utc)
 
     horo = Horoscope(ed=EpheDate(date), settings=settings)
     print(date.astimezone(None))
     print_horoscope(horo)
 
+    chart_cls = STYLE_NAMES[style]
+
     if save_img:
-        chart = ModernWheelChart(horo)
+        chart = chart_cls(horo)
         chart.finish()
         img = chart.img
 

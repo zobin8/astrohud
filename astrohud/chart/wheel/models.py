@@ -9,7 +9,6 @@ from typing import Optional
 from typing import Tuple
 import math
 
-from astrohud.chart._base.const import COLOR_WHITE
 from astrohud.chart._base.const import IMAGE_PAD
 from astrohud.chart._base.const import MAX_RADIUS
 from astrohud.chart._base.models import BaseChart
@@ -23,6 +22,8 @@ from astrohud.lib.ephemeris.enums import House
 from astrohud.lib.ephemeris.enums import Planet
 from astrohud.lib.ephemeris.enums import Sign
 from astrohud.lib.horoscope.enums import Aspect
+from astrohud.lib.horoscope.enums import Dignity
+from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
 from astrohud.lib.horoscope.models import Horoscope
 
 
@@ -36,6 +37,8 @@ HOUSE_IN_RADIUS = MAX_RADIUS * 0.4
 
 PLANET_1_RADIUS = MAX_RADIUS * 0.7
 PLANET_2_RADIUS = MAX_RADIUS * 0.6
+TIP_1_RADIUS = MAX_RADIUS * 0.77
+TIP_2_RADIUS = MAX_RADIUS * 0.53
 TIP_RADIUS = MAX_RADIUS * 0.015
 BUBBLE_RADIUS = MAX_RADIUS * 0.005
 BRIDGE_RADIUS = MAX_RADIUS * 0.02
@@ -259,15 +262,25 @@ class WheelChart(BaseChart):
             phi = horo.position.abs_angle - self.asc_angle
             nudge_phi = nudge_coords(horo.position.abs_angle, avoid) - self.asc_angle
             planet_radius = PLANET_1_RADIUS
+            tip_radius = TIP_1_RADIUS
             if find_collision(nudge_phi, placed_planets):
                 planet_radius = PLANET_2_RADIUS
+                tip_radius = TIP_2_RADIUS
 
             c1 = WheelCoord(rho=planet_radius, ra=nudge_phi)
             c2 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=phi)
             c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)
             c4 = WheelCoord(rho=ZODIAC_IN_RADIUS, ra=phi)
+            c5 = WheelCoord(rho=tip_radius, ra=nudge_phi)
+
+            label = ''
+            if horo.dignity != Dignity.NORMAL:
+                label += f'{ESSENTIAL_SCORE[horo.dignity][0]:+2}'
+            if horo.retrograde:
+                label += 'R'
             
             self.shapes.add(Label(c1, planet))
+            self.shapes.add(Label(c5, label, small=True))
             self._draw_tip(c2, 1)
             self._draw_tip(c3, -1)
             self._draw_tip(c4, 1)
