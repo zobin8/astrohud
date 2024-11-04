@@ -28,6 +28,7 @@ class EpheSettings:
     """Settings for ephemeris calculation"""
 
     orb_limit: float
+    conjunction_limit: float
     location: Tuple[float, float]
     zodiac: Zodiac
     house_sys: bytes

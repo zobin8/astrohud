@@ -6,7 +6,9 @@ from typing import Tuple
 import click
 import json
 
-from astrohud.lib.search.util import find_datetime_range
+from astrohud.chart.star.models import StarChart
+from astrohud.chart.wheel.models import ClassicWheelChart
+from astrohud.chart.wheel.models import ModernWheelChart
 from astrohud.cli.util import print_horoscope
 from astrohud.cli.util import print_range
 from astrohud.lib.ephemeris.const import HOUSE_SYSTEMS
@@ -14,8 +16,7 @@ from astrohud.lib.ephemeris.enums import Zodiac
 from astrohud.lib.ephemeris.models import EpheDate
 from astrohud.lib.ephemeris.models import EpheSettings
 from astrohud.lib.horoscope.models import Horoscope
-from astrohud.chart.wheel.models import ClassicWheelChart
-from astrohud.chart.wheel.models import ModernWheelChart
+from astrohud.lib.search.util import find_datetime_range
 
 
 LATITUDE = 38.5595886
@@ -25,11 +26,13 @@ ZODIAC_NAMES = [z.name for z in list(Zodiac)]
 STYLE_NAMES = {
     'classic': ClassicWheelChart,
     'modern': ModernWheelChart,
+    'star': StarChart,
 }
 
 
 def default_settings(function):
     @click.option('-o', '--orb-limit', type=float, default=2, show_default=True, help='Maximum orb limit for aspects, in degrees.')
+    @click.option('-c', '--conjunction-limit', type=float, default=5, show_default=True, help='Maximum orb limit for conjunction, in degrees.')
     @click.option('-l', '--location', type=float, nargs=2, default=(LATITUDE, LONGITUDE), help='Latitude, Longitude coordinates for location. Defaults to Davis, CA')
     @click.option(
         '--zodiac', default=Zodiac.IAU.name, type=click.Choice(ZODIAC_NAMES, case_sensitive=False), show_default=True,
@@ -40,11 +43,12 @@ def default_settings(function):
         '--house-sys', default='P', type=click.Choice(HOUSE_SYSTEMS.keys(), case_sensitive=False), show_default=True,
         help=f'House system. Can be: {HOUSE_SYS_NAMES}'
     )
-    def wrapper(orb_limit: float, location: Tuple[float, float], zodiac: str, aspects: bool, house_sys: bytes, **kwargs):
+    def wrapper(orb_limit: float, conjunction_limit: float, location: Tuple[float, float], zodiac: str, aspects: bool, house_sys: bytes, **kwargs):
         if not aspects:
             orb_limit = -1
         settings = EpheSettings(
             orb_limit=orb_limit,
+            conjunction_limit=conjunction_limit,
             location=location,
             zodiac=getattr(Zodiac, zodiac.upper()),
             house_sys=bytes(house_sys, 'latin1'),

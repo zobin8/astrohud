@@ -85,7 +85,7 @@ class BaseSplitter(ABC,Generic[T]):
         return best_option
     
     @abstractmethod
-    def split(self, ra: float, dec: float = 0) -> Any:
+    def split(self, ra: float, dec: float = 0) -> T:
         """Split an ecliptic position"""
         pass
     

@@ -29,24 +29,17 @@ def init_constellations():
         CONSTELLATIONS[row.Sign].append((row.Angle, row.Declination))
 
 
-class SignSplitter(Splitter3D[Sign]):
-    def __init__(self, obliquity: float, zodiac: Zodiac):
+class Constellations:
+    signs: Dict[Sign, List[Tuple[float, float]]]
+    obliquity: float
+
+    def __init__(self, obliquity: float):
         """Constructor"""
-        super().__init__()
+        self.signs = dict()
         self.obliquity = obliquity
-
-        if zodiac == Zodiac.IAU:
-            self.ring[0] = self._get_iau_ring(0)
-        elif zodiac == Zodiac.PLANETARIUM:
-            for declination in range(-85, 90, 5):
-                ring = self._get_iau_ring(declination)
-                self.ring[declination] = ring
-        else:
-            ring = Splitter2D[Sign]()
-            for i in range(12):
-                ring.ring[i * 30] = Sign(i)
-
-            self.ring[0] = ring
+        for sign, celestial_points in CONSTELLATIONS.items():
+            points = [self._celestial_to_ecliptic(x, y) for x, y in celestial_points]
+            self.signs[sign] = points
 
     def _celestial_to_ecliptic(self, celestial_x: float, celestial_y: float) -> Tuple[float, float]:
         """Convert celestial coordinates (constellations) to ecliptic coordinates
@@ -76,10 +69,31 @@ class SignSplitter(Splitter3D[Sign]):
     
         return math.degrees(ex), math.degrees(ey)
 
+
+class SignSplitter(Splitter3D[Sign]):
+    constellations: Constellations
+
+    def __init__(self, obliquity: float, zodiac: Zodiac):
+        """Constructor"""
+        super().__init__()
+        self.constellations = Constellations(obliquity)
+
+        if zodiac == Zodiac.IAU:
+            self.ring[0] = self._get_iau_ring(0)
+        elif zodiac == Zodiac.PLANETARIUM:
+            for declination in range(-85, 90, 5):
+                ring = self._get_iau_ring(declination)
+                self.ring[declination] = ring
+        else:
+            ring = Splitter2D[Sign]()
+            for i in range(12):
+                ring.ring[i * 30] = Sign(i)
+
+            self.ring[0] = ring
+
     def _get_iau_ring(self, declination: float) -> Splitter2D[Sign]:
         out = Splitter2D[Sign]()
-        for sign, celestial_points in CONSTELLATIONS.items():
-            points = [self._celestial_to_ecliptic(x, y) for x, y in celestial_points]
+        for sign, points in self.constellations.signs.items():
             next_points = points[1:] + points[:0]
             cusp = None
             for pt1, pt2 in zip(points, next_points):

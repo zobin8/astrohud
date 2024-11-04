@@ -20,6 +20,7 @@ from astrohud.lib.horoscope.const import ASPECT_DEGREES
 from astrohud.lib.horoscope.const import ELEMENT_ASSOCIATION
 from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
 from astrohud.lib.horoscope.const import EXALTATIONS
+from astrohud.lib.horoscope.const import RETROGRADE_SCORE
 from astrohud.lib.horoscope.const import RULERS
 from astrohud.lib.horoscope.const import TRIPLICITIES
 from astrohud.lib.horoscope.const import TRIPLICITY_TIME
@@ -65,7 +66,10 @@ class PlanetHoroscope(BaseMatchable):
         self._add_scores(ESSENTIAL_SCORE[aspect])
 
     def _assign_scores(self) -> Tuple[float, float]:
-        self._add_scores(ESSENTIAL_SCORE[self.dignity])
+        scores = list(ESSENTIAL_SCORE[self.dignity])
+        if self.retrograde:
+            scores += [RETROGRADE_SCORE]
+        self._add_scores(scores)
 
     def _add_scores(self, scores: List[float]):
         for score in scores:
@@ -102,14 +106,18 @@ class AspectHoroscope(BaseMatchable):
     aspect: Aspect
     orb: float
 
-    def __init__(self, p1: PlanetHoroscope, p2: PlanetHoroscope, orb_limit=float):
+    def __init__(self, p1: PlanetHoroscope, p2: PlanetHoroscope, settings: EpheSettings):
         angle = abs(p1.position.abs_angle - p2.position.abs_angle)
         if angle > 180:
             angle = 360 - angle
 
         for aspect, target_angle in ASPECT_DEGREES.items():
             orb = abs(angle - target_angle)
-            if orb < orb_limit or (orb < 2 * orb_limit and aspect == Aspect.CONJUNCTION):
+            limit = settings.orb_limit
+            if aspect == Aspect.CONJUNCTION:
+                limit = settings.conjunction_limit
+
+            if orb < limit:
                 self.aspect = aspect
                 self.orb = orb
                 p1.add_aspect(aspect)
@@ -129,9 +137,12 @@ class Horoscope(BaseMatchable):
     houses: Dict[House, float]
     aspects: Dict[PlanetTuple, AspectHoroscope]
 
+    house_splitter: BaseSplitter[House]
+    sign_splitter: BaseSplitter[Sign]
+
     def __init__(self, ed: EpheDate, settings: EpheSettings):
-        signs = SignSplitter(ed.obliquity, settings.zodiac)
-        houses = HouseSplitter(ed.ut, settings)
+        self.sign_splitter = SignSplitter(ed.obliquity, settings.zodiac)
+        self.house_splitter = HouseSplitter(ed.ut, settings)
 
         self.planets = dict()
         for planet in list(Planet):
@@ -139,22 +150,22 @@ class Horoscope(BaseMatchable):
                 ed,
                 planet,
                 settings.zodiac,
-                signs,
-                houses
+                self.sign_splitter,
+                self.house_splitter
             )
 
-        self._get_all_aspects(settings.orb_limit)
+        self._get_all_aspects(settings)
 
-        self.ascending = houses.get_ascendant(signs)
-        self.houses = {v: k for k, v in houses.ring.items()}
-        self.signs = {v: k for k, v in signs.ring[0].ring.items()}
+        self.ascending = self.house_splitter.get_ascendant(self.sign_splitter)
+        self.houses = {v: k for k, v in self.house_splitter.ring.items()}
+        self.signs = {v: k for k, v in self.sign_splitter.ring[0].ring.items()}
     
-    def _get_all_aspects(self, orb_limit: float) -> Dict[PlanetTuple, AspectHoroscope]:
+    def _get_all_aspects(self, settings: EpheSettings) -> Dict[PlanetTuple, AspectHoroscope]:
         self.aspects = dict()
         for p1, ph1 in self.planets.items():
             for p2, ph2 in self.planets.items():
                 if p1.value >= p2.value:
                     continue
-                aspect = AspectHoroscope(ph1, ph2, orb_limit)
+                aspect = AspectHoroscope(ph1, ph2, settings)
                 if aspect.aspect != Aspect.NONE:
                     self.aspects[PlanetTuple(p1, p2)] = aspect

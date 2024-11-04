@@ -286,8 +286,28 @@ class WheelChart(BaseChart):
             self._draw_tip(c4, 1)
             placed_planets.append(nudge_phi)
 
+    def _merge_conjunctions(self, horoscope: Horoscope) -> Dict[Planet, float]:
+        """Merge aspects for conjunction planets"""
+
+        positions = {p:  horoscope.planets[p].position.abs_angle - self.asc_angle for p in horoscope.planets}
+        uf = UnionFind()
+        for planets, aspect in horoscope.aspects.items():
+            if aspect.aspect == Aspect.CONJUNCTION:
+                uf.union(planets.planet1, planets.planet2)
+        for conjoined in uf.members.values():
+            anchor = positions[list(conjoined)[0]]
+            conjoined_pos = [close_angles(positions[p], anchor)[0] for p in conjoined]
+            avg_pos = sum(conjoined_pos) / len(conjoined_pos)
+
+            for p in conjoined:
+                positions[p] = avg_pos
+
+        return positions
+
     def _draw_aspects(self, horoscope: Horoscope):
         """Draw basic aspects to the chart. Only includes conjunctions."""
+
+        positions = self._merge_conjunctions(horoscope)
 
         for planets, aspect in horoscope.aspects.items():
             if aspect.aspect != Aspect.CONJUNCTION:
@@ -295,7 +315,7 @@ class WheelChart(BaseChart):
             
             a1 = horoscope.planets[planets.planet1].position.abs_angle - self.asc_angle
             a2 = horoscope.planets[planets.planet2].position.abs_angle - self.asc_angle
-            center = get_center(a1, a2)
+            center = positions[planets.planet1]
 
             c1 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=center)
             c2 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=center + CONJUNCTION_ANGLE)
@@ -314,12 +334,14 @@ class ClassicWheelChart(WheelChart):
 
         super()._draw_aspects(horoscope)
 
+        positions = self._merge_conjunctions(horoscope)
+
         for planets, aspect in horoscope.aspects.items():
             if aspect.aspect == Aspect.CONJUNCTION:
                 continue
 
-            a1 = horoscope.planets[planets.planet1].position.abs_angle - self.asc_angle
-            a2 = horoscope.planets[planets.planet2].position.abs_angle - self.asc_angle
+            a1 = positions[planets.planet1]
+            a2 = positions[planets.planet2]
 
             c1 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=a1)
             c2 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=a2)
@@ -352,24 +374,6 @@ class ModernWheelChart(WheelChart):
             self.shapes.add(Line(b, c))
         elif aspect == Aspect.OPPOSITION:
             self.shapes.add(Arc(b, c, a))
-
-    def _merge_conjunctions(self, horoscope: Horoscope) -> Dict[Planet, float]:
-        """Merge aspects for conjunction planets"""
-
-        positions = {p:  horoscope.planets[p].position.abs_angle - self.asc_angle for p in horoscope.planets}
-        uf = UnionFind()
-        for planets, aspect in horoscope.aspects.items():
-            if aspect.aspect == Aspect.CONJUNCTION:
-                uf.union(planets.planet1, planets.planet2)
-        for conjoined in uf.members.values():
-            anchor = positions[list(conjoined)[0]]
-            conjoined_pos = [close_angles(positions[p], anchor)[0] for p in conjoined]
-            avg_pos = sum(conjoined_pos) / len(conjoined_pos)
-
-            for p in conjoined:
-                positions[p] = avg_pos
-
-        return positions
 
     def _get_aspect_arcs(self, positions: Dict[Planet, float], horoscope: Horoscope) -> Tuple[List[Tuple[float, float]], List[Aspect]]:
         """Get arcs for all aspects"""

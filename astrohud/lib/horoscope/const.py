@@ -131,3 +131,4 @@ ESSENTIAL_SCORE.update({
     Dignity.EXALTATION: [4],
     Dignity.DIGNITY: [5],
 })
+RETROGRADE_SCORE = -1
