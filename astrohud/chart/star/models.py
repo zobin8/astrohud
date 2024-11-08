@@ -61,7 +61,12 @@ class StarChart(BaseChart):
         # Sinusoidal projection
         center_deg = (start_deg + end_deg) / 2
         rho = (coord.dec + 90) * MAX_RADIUS / 180
-        phi = center_deg + (coord.ra - center_deg) * math.cos(math.radians(coord.dec))
+        ra = coord.ra
+        while ra - center_deg > 180:
+            ra -= 360
+        while center_deg - ra > 180:
+            ra += 360
+        phi = center_deg + (ra - center_deg) * math.cos(math.radians(coord.dec))
 
         # Polar to cartesian
         x = rho * math.cos(math.radians(phi))
@@ -78,8 +83,9 @@ class StarChart(BaseChart):
         for house, phi in self.horoscope.houses.items():
             for delta in [-0.1, 0.1]:
                 for dec in range(-90, 90, 5):
-                    a = StarCoord(ra=phi + delta, dec=dec)
-                    b = StarCoord(ra=phi + delta, dec=dec + 5)
+                    ra = phi + delta
+                    a = StarCoord(ra=ra, dec=dec)
+                    b = StarCoord(ra=ra, dec=dec + 5)
                     self.shapes.add(Line(a, b))
 
         signs = self.horoscope.sign_splitter.constellations.signs
@@ -88,4 +94,4 @@ class StarChart(BaseChart):
             for p1, p2 in zip(points, next_points):
                 a = StarCoord(ra=p1[0] % 360, dec=p1[1])
                 b = StarCoord(ra=p2[0] % 360, dec=p2[1])
-                #self.shapes.add(Line(a, b))
+                self.shapes.add(Line(a, b))

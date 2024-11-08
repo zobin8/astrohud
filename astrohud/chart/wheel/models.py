@@ -98,12 +98,12 @@ def sort_angles(phi1: float, phi2: float) -> Tuple[float, float]:
     return phi1, phi2
 
 
-def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float]) -> bool:
-    comp_start = compare_angles(arc1[0], arc2[0])
+def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float], add: float = COLLISION_ANGLE) -> bool:
+    comp_start = compare_angles(arc1[1], arc2[1])
     if comp_start < 0:
-        cross = compare_angles(arc1[0], arc2[1]) + COLLISION_ANGLE
+        cross = compare_angles(arc1[1], arc2[0]) + add
     else:
-        cross = compare_angles(arc2[0], arc1[1]) + COLLISION_ANGLE
+        cross = compare_angles(arc2[1], arc1[0]) + add
     return cross > 0
 
 
@@ -155,7 +155,10 @@ class WheelChart(BaseChart):
     """Standard natal chart designed as an ecliptic wheel"""
     
     asc_angle: float
-    signs: List[Tuple[Sign, float]]
+    main_signs: List[Sign]
+    signs: Dict[Sign, Tuple[float, float]]
+    sign_radius: Dict[Sign, int]
+    sign_coll: Dict[Sign, int]
     cusps: List[Tuple[House, float]]
 
     def __init__(self, horoscope: Horoscope):
@@ -164,7 +167,10 @@ class WheelChart(BaseChart):
 
         self.asc_angle = horoscope.ascending.abs_angle
         self.cusps = list(sorted([(k, v) for k, v in horoscope.houses.items()], key=lambda t: t[1]))
-        self.signs = list(sorted([(k, v) for k, v in horoscope.signs.items()], key=lambda t: t[1]))
+        self.signs = {s: close_angles(*sort_angles(*a)) for s, a in horoscope.signs.items()}
+        self.main_signs = list(horoscope.sign_splitter.ring[0].ring.values())
+        self.sign_radius = {sign: 0 for sign in self.signs.keys()}
+        self.sign_coll = {sign: 1 for sign in self.signs.keys()}
 
         self._draw_structure()
         self._draw_houses()
@@ -194,6 +200,30 @@ class WheelChart(BaseChart):
             small=small,
         ))
 
+    def _get_sign_collisions(self):
+        """Calculate sign collisions"""
+        for sign, limits in self.signs.items():
+            if sign in self.main_signs:
+                continue
+            for s2, l2 in self.signs.items():
+                if s2 == sign:
+                    continue
+                if not check_arc_collision(limits, l2, add=0):
+                    continue
+
+                # ZTODO 2024-08-01
+                self.sign_coll[s2] = 2
+                self.sign_coll[sign] = 2
+                self.sign_radius[sign] = 1
+
+    def _get_zodiac_radius(self, sign: Sign) -> Tuple[float, float]:
+        """Get the inside and outside radius for a sign"""
+        width = ZODIAC_OUT_RADIUS - ZODIAC_IN_RADIUS
+        in_radius = ZODIAC_IN_RADIUS + (width * self.sign_radius[sign] / self.sign_coll[sign])
+        out_radius = in_radius + (width / self.sign_coll[sign])
+
+        return in_radius, out_radius
+
     def _draw_structure(self):
         """Draw the general wheel structure"""
 
@@ -201,18 +231,28 @@ class WheelChart(BaseChart):
         self.shapes.add(Circle(center=WheelCoord(), edge=WheelCoord(rho=ZODIAC_IN_RADIUS)))
         self.shapes.add(Circle(center=WheelCoord(), edge=WheelCoord(rho=HOUSE_OUT_RADIUS)))
         self.shapes.add(Circle(center=WheelCoord(), edge=WheelCoord(rho=HOUSE_IN_RADIUS)))
-        
-        next_signs = self.signs[1:] + [self.signs[0]]
-        for i, sign in enumerate(self.signs):
-            phi = sign[1] - self.asc_angle
-            phi2 = next_signs[i][1] - self.asc_angle
 
-            c1 = WheelCoord(rho=ZODIAC_IN_RADIUS, ra=phi)
-            c2 = WheelCoord(rho=ZODIAC_OUT_RADIUS, ra=phi2)
-            c3 = WheelCoord(rho=ZODIAC_OUT_RADIUS, ra=phi)
+        self._get_sign_collisions()
+        
+        for sign, limits in self.signs.items():
+            phi = limits[0] - self.asc_angle
+            phi2 = limits[1] - self.asc_angle
+
+            in_radius, out_radius = self._get_zodiac_radius(sign)
+
+            c1 = WheelCoord(rho=in_radius, ra=phi)
+            c2 = WheelCoord(rho=out_radius, ra=phi2)
+            c3 = WheelCoord(rho=out_radius, ra=phi)
+            c4 = WheelCoord(rho=in_radius, ra=phi2)
+
+            if self.sign_radius[sign] > 0:
+                self.shapes.add(Arc(c1, c4, WheelCoord()))
+                self._label_quad(c1, c2, label=sign.name[0])
+            else:
+                self._label_quad(c1, c2, label=sign)
 
             self.shapes.add(Line(c1, c3))
-            self._label_quad(c1, c2, sign[0])
+            self.shapes.add(Line(c4, c2))
 
     def _draw_houses(self):
         """Draw segmentations for the houses"""
@@ -267,10 +307,11 @@ class WheelChart(BaseChart):
                 planet_radius = PLANET_2_RADIUS
                 tip_radius = TIP_2_RADIUS
 
+            in_radius, _ = self._get_zodiac_radius(horo.position.sign)
             c1 = WheelCoord(rho=planet_radius, ra=nudge_phi)
             c2 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=phi)
             c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)
-            c4 = WheelCoord(rho=ZODIAC_IN_RADIUS, ra=phi)
+            c4 = WheelCoord(rho=in_radius, ra=phi)
             c5 = WheelCoord(rho=tip_radius, ra=nudge_phi)
 
             label = ''
@@ -384,7 +425,7 @@ class ModernWheelChart(WheelChart):
             a1 = positions[planets.planet1]
             a2 = positions[planets.planet2]
 
-            a2, a1 = sort_angles(a1, a2)
+            a1, a2 = sort_angles(a1, a2)
             if aspect.aspect != Aspect.CONJUNCTION:
                 arc = close_angles(a1, a2)
                 if arc not in arcs:
@@ -395,7 +436,7 @@ class ModernWheelChart(WheelChart):
     def _get_arc_groups(self, arcs: List[Tuple[float, float]], collision_matrix: List[List[bool]]) -> List[List[int]]:
         """Create groups for arcs so they don't collide"""
 
-        arc_order = sorted(list(range(len(arcs))), key=lambda i: arcs[i][0] - arcs[i][1])
+        arc_order = sorted(list(range(len(arcs))), key=lambda i: arcs[i][1] - arcs[i][0])
         arc_groups: List[List[int]] = [[]]
         for i in arc_order:
             level = 0
@@ -435,7 +476,7 @@ class ModernWheelChart(WheelChart):
             radius -= step_radius
             radii += [radius]
             for i in group:
-                phi1, phi2 = arcs[i]
+                phi2, phi1 = arcs[i]
 
                 c1 = WheelCoord(rho=radius, ra=phi1)
                 c2 = WheelCoord(rho=radius, ra=phi2)

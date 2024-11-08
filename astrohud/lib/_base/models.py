@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Any
 from typing import Dict
 from typing import Generic
+from typing import Tuple
 from typing import TypeVar
 
 
@@ -84,6 +85,19 @@ class BaseSplitter(ABC,Generic[T]):
                 best_option = option
         return best_option
     
+    def _split_next(self, deg: float) -> float:
+        """Get the next degree across self.ring"""
+        best_option = None
+        best_dist = 360
+        for limit in self.ring.keys():
+            if limit == deg:
+                continue
+            angle = (limit - deg) % 360
+            if angle < best_dist:
+                best_dist = angle
+                best_option = limit
+        return best_option
+    
     @abstractmethod
     def split(self, ra: float, dec: float = 0) -> T:
         """Split an ecliptic position"""
@@ -106,3 +120,13 @@ class Splitter3D(BaseSplitter[Splitter2D[T]]):
 
         splitter2d = self._split_deg(dec)
         return splitter2d.split(ra)
+    
+    def get_ra_limits(self, item: T, dec: float = 0) -> Tuple[float, float]:
+        """Get the min and max ra for the item"""
+        splitter = self._split_deg(dec)
+        for min_angle, item2 in splitter.ring.items():
+            if item != item2:
+                continue
+            return min_angle, splitter._split_next(min_angle)
+
+        return None, None

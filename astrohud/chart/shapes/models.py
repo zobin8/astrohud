@@ -1,16 +1,15 @@
 """Common shape models"""
 
 from dataclasses import dataclass
-from typing import Union
 from enum import Enum
+from typing import Optional
+from typing import Union
 import os
 
 import numpy as np
 from PIL import Image
 from PIL import ImageFont
 
-from astrohud.chart._base.const import COLOR_ALPHA
-from astrohud.chart._base.const import COLOR_BLACK
 from astrohud.chart._base.const import COLOR_WHITE
 from astrohud.chart._base.models import BaseChart
 from astrohud.chart._base.models import BaseCoord
@@ -97,8 +96,11 @@ class Label(BaseShape):
     label: Union[str, Enum]
     small: bool = False
 
-    def _get_symbol(self, name: str) -> Image.Image:
-        img = Image.open(os.path.join(IMG_FOLDER, f'{name.lower()}.png'))
+    def _get_symbol(self, name: str) -> Optional[Image.Image]:
+        path = os.path.join(IMG_FOLDER, f'{name.lower()}.png')
+        if not os.path.exists(path):
+            return None
+        img = Image.open(path)
 
         return img.convert('RGBA').resize((150, 150))
     
@@ -110,5 +112,6 @@ class Label(BaseShape):
             chart.draw.text(center.tuple, self.label, font=font, fill=COLOR_WHITE, anchor='mm')
         else:
             img = self._get_symbol(self.label.name)
-            start = XY(array=center.array - (img.width / 2))
-            chart.draw.bitmap(start.tuple, img, fill=COLOR_WHITE)
+            if img:
+                start = XY(array=center.array - (img.width / 2))
+                chart.draw.bitmap(start.tuple, img, fill=COLOR_WHITE)
