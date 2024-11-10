@@ -15,6 +15,7 @@ from astrohud.chart._base.models import BaseChart
 from astrohud.chart._base.models import BaseCoord
 from astrohud.chart._base.models import BaseShape
 from astrohud.chart._base.models import XY
+from .const import MINOR_SIGN_LABELS
 
 
 
@@ -108,10 +109,15 @@ class Label(BaseShape):
         """Draw shape to chart"""
         center = chart.convert_coord(self.center)
         font = SMALL_FONT if self.small else BIG_FONT
-        if isinstance(self.label, str):
-            chart.draw.text(center.tuple, self.label, font=font, fill=COLOR_WHITE, anchor='mm')
+
+        label = self.label
+        if self.label in MINOR_SIGN_LABELS:
+            label = MINOR_SIGN_LABELS[self.label]
+
+        if isinstance(label, str):
+            chart.draw.text(center.tuple, label, font=font, fill=COLOR_WHITE, anchor='mm')
         else:
-            img = self._get_symbol(self.label.name)
+            img = self._get_symbol(label.name)
             if img:
                 start = XY(array=center.array - (img.width / 2))
                 chart.draw.bitmap(start.tuple, img, fill=COLOR_WHITE)

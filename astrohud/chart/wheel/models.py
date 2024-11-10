@@ -247,10 +247,8 @@ class WheelChart(BaseChart):
 
             if self.sign_radius[sign] > 0:
                 self.shapes.add(Arc(c1, c4, WheelCoord()))
-                self._label_quad(c1, c2, label=sign.name[0])
-            else:
-                self._label_quad(c1, c2, label=sign)
-
+            
+            self._label_quad(c1, c2, label=sign)
             self.shapes.add(Line(c1, c3))
             self.shapes.add(Line(c4, c2))
 
