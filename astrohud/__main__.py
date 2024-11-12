@@ -104,9 +104,10 @@ def find(settings: EpheSettings, start_date: datetime, end_date: datetime, day_f
 @click.option('-d', '--date', type=click.DateTime(), default=datetime.now(timezone.utc), help='Date to use. Defaults to now.')
 @click.option('--save-img', type=click.Path(dir_okay=False, writable=True), multiple=True, help='If specified, save horoscope image to path.')
 @click.option('--background', type=click.Path(dir_okay=False, writable=True), multiple=True, help='If specified, overlay horoscope over image.')
+@click.option('--background-shift', type=float, multiple=True, help='If specified, percentile to shift the background overlay')
 @click.option('--style', type=click.Choice(STYLE_NAMES.keys(), case_sensitive=False), default='modern', help='Printed chart style.')
 @default_settings
-def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], background: Tuple[str], style: str):
+def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], background: Tuple[str], background_shift: Tuple[float], style: str):
     date = date.astimezone(timezone.utc)
 
     horo = Horoscope(ed=EpheDate(date), settings=settings)
@@ -122,8 +123,11 @@ def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], backgroun
 
         for i, save_path in enumerate(save_img):
             img_i = img
+            shift = 0
+            if (len(background_shift) > i):
+                shift = background_shift[i]
             if len(background) > i:
-                img_i = chart.overlay_image(background[i])
+                img_i = chart.overlay_image(background[i], shift)
             img_i.save(save_path)
 
 

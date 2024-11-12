@@ -65,13 +65,17 @@ class BaseChart(ABC):
     def convert_coord(coord: BaseCoord) -> XY:
         """Convert an ecliptic coordinate to chart XY."""
 
-    def overlay_image(self, background: str) -> Image.Image:
+    def overlay_image(self, background: str, shift: float = 0) -> Image.Image:
         """Overlay the chart on the given background image"""
         img = Image.open(background)
         size = min(img.height, img.width)
         overlay = self.img.resize((size, size))
         x = (img.width - size) // 2
         y = (img.height - size) // 2
+
+        x += int(x * shift)
+        y += int(y * shift)
+
         img.alpha_composite(overlay, (x, y))
         return img
     
