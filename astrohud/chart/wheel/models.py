@@ -155,10 +155,10 @@ class WheelChart(BaseChart):
     """Standard natal chart designed as an ecliptic wheel"""
     
     asc_angle: float
-    main_signs: List[Sign]
-    signs: Dict[Sign, Tuple[float, float]]
-    sign_radius: Dict[Sign, int]
-    sign_coll: Dict[Sign, int]
+    main_signs: int
+    signs: List[Tuple[int, Sign, float, float]]
+    sign_radius: Dict[int, int]
+    sign_coll: Dict[int, int]
     cusps: List[Tuple[House, float]]
 
     def __init__(self, horoscope: Horoscope):
@@ -167,10 +167,10 @@ class WheelChart(BaseChart):
 
         self.asc_angle = horoscope.ascending.abs_angle
         self.cusps = list(sorted([(k, v) for k, v in horoscope.houses.items()], key=lambda t: t[1]))
-        self.signs = {s: close_angles(*sort_angles(*a)) for s, a in horoscope.signs.items()}
-        self.main_signs = list(horoscope.sign_splitter.ring[0].ring.values())
-        self.sign_radius = {sign: 0 for sign in self.signs.keys()}
-        self.sign_coll = {sign: 1 for sign in self.signs.keys()}
+        self.signs = [(i, t[0], *close_angles(*sort_angles(t[1], t[2]))) for i, t in enumerate(horoscope.signs)]
+        self.main_signs = len(horoscope.sign_splitter.ring[0].ring.values())
+        self.sign_radius = {i: 0 for i in range(len(self.signs))}
+        self.sign_coll = {i: 1 for i in range(len(self.signs))}
 
         self._draw_structure()
         self._draw_houses()
@@ -202,21 +202,21 @@ class WheelChart(BaseChart):
 
     def _get_sign_collisions(self):
         """Calculate sign collisions"""
-        for sign, limits in self.signs.items():
-            if sign in self.main_signs:
+        for i, _, a, b in self.signs:
+            if i < self.main_signs:
                 continue
-            for s2, l2 in self.signs.items():
-                if s2 == sign:
+            for j, _, a2, b2 in self.signs:
+                if j == i:
                     continue
-                if not check_arc_collision(limits, l2, add=0):
+                if not check_arc_collision((a, b), (a2, b2), add=0):
                     continue
 
-                # ZTODO 2024-08-01
-                self.sign_coll[s2] = 2
-                self.sign_coll[sign] = 2
-                self.sign_radius[sign] = 1
+                # ZTODO 2024-08-01, 2024-05-01
+                self.sign_coll[j] = 2
+                self.sign_coll[i] = 2
+                self.sign_radius[i] = 1
 
-    def _get_zodiac_radius(self, sign: Sign) -> Tuple[float, float]:
+    def _get_zodiac_radius(self, sign: int) -> Tuple[float, float]:
         """Get the inside and outside radius for a sign"""
         width = ZODIAC_OUT_RADIUS - ZODIAC_IN_RADIUS
         in_radius = ZODIAC_IN_RADIUS + (width * self.sign_radius[sign] / self.sign_coll[sign])
@@ -234,18 +234,18 @@ class WheelChart(BaseChart):
 
         self._get_sign_collisions()
         
-        for sign, limits in self.signs.items():
-            phi = limits[0] - self.asc_angle
-            phi2 = limits[1] - self.asc_angle
+        for i, sign, a, b in self.signs:
+            phi = a - self.asc_angle
+            phi2 = b - self.asc_angle
 
-            in_radius, out_radius = self._get_zodiac_radius(sign)
+            in_radius, out_radius = self._get_zodiac_radius(i)
 
             c1 = WheelCoord(rho=in_radius, ra=phi)
             c2 = WheelCoord(rho=out_radius, ra=phi2)
             c3 = WheelCoord(rho=out_radius, ra=phi)
             c4 = WheelCoord(rho=in_radius, ra=phi2)
 
-            if self.sign_radius[sign] > 0:
+            if self.sign_radius[i] > 0:
                 self.shapes.add(Arc(c1, c4, WheelCoord()))
             
             self._label_quad(c1, c2, label=sign)
@@ -305,7 +305,12 @@ class WheelChart(BaseChart):
                 planet_radius = PLANET_2_RADIUS
                 tip_radius = TIP_2_RADIUS
 
-            in_radius, _ = self._get_zodiac_radius(horo.position.sign)
+            signs = [i for i, s, a, b, in self.signs if s == horo.position.sign]
+            sign_index = signs[0]
+            if horo.position.sign != horoscope.sign_splitter.split(horo.position.abs_angle, 0):
+                sign_index = signs[-1]
+
+            in_radius, _ = self._get_zodiac_radius(sign_index)
             c1 = WheelCoord(rho=planet_radius, ra=nudge_phi)
             c2 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=phi)
             c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)

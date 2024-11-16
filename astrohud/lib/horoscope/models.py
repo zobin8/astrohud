@@ -133,7 +133,8 @@ class Horoscope(BaseMatchable):
 
     planets: Dict[Planet, PlanetHoroscope]
     ascending: SignPosition
-    signs: Dict[Sign, Tuple[float, float]]
+    signs: List[Tuple[Sign, float, float]]
+    extra_signs: Dict[Sign, Tuple[float, float]]
     houses: Dict[House, float]
     aspects: Dict[PlanetTuple, AspectHoroscope]
 
@@ -145,7 +146,7 @@ class Horoscope(BaseMatchable):
         self.house_splitter = HouseSplitter(ed.ut, settings)
 
         self.planets = dict()
-        important_signs = dict()
+        extra_signs = []
         for planet in list(Planet):
             self.planets[planet] = PlanetHoroscope(
                 ed,
@@ -155,17 +156,25 @@ class Horoscope(BaseMatchable):
                 self.house_splitter
             )
             pos = self.planets[planet].position
-            important_signs[pos.sign] = pos.declination
-        important_signs.update({s: 0 for s in self.sign_splitter.ring[0].ring.values()})
+            extra_signs.append((pos.sign, pos.abs_angle, pos.declination))
 
         self._get_all_aspects(settings)
 
         self.ascending = self.house_splitter.get_ascendant(self.sign_splitter)
         self.houses = {v: k for k, v in self.house_splitter.ring.items()}
         
-        self.signs = dict()
-        for sign, dec in important_signs.items():
-            self.signs[sign] = self.sign_splitter.get_ra_limits(sign, dec)
+        # Add main signs
+        self.signs = []
+        for sign in self.sign_splitter.ring[0].ring.values():
+            a, b = self.sign_splitter.get_ra_limits(sign, 0)
+            self.signs.append((sign, a, b))
+        
+        # Add extra signs
+        for sign, ra, dec in extra_signs:
+            if sign == self.sign_splitter.split(ra, 0):
+                continue
+            a, b = self.sign_splitter.get_ra_limits(sign, dec)
+            self.signs.append((sign, a, b))
     
     def _get_all_aspects(self, settings: EpheSettings) -> Dict[PlanetTuple, AspectHoroscope]:
         self.aspects = dict()
