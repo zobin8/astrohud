@@ -45,8 +45,8 @@ BRIDGE_RADIUS = MAX_RADIUS * 0.02
 ASPECT_TIP_RADIUS = MAX_RADIUS * 0.02
 
 
-NUDGE_ANGLE = 4
-COLLISION_ANGLE = 4
+NUDGE_ANGLE = 5
+COLLISION_ANGLE = 5
 CONJUNCTION_ANGLE = 2
 
 
@@ -159,6 +159,7 @@ class WheelChart(BaseChart):
     signs: List[Tuple[int, Sign, float, float]]
     sign_radius: Dict[int, int]
     sign_coll: Dict[int, int]
+    sign_mid_coll: Dict[int, int]
     cusps: List[Tuple[House, float]]
 
     def __init__(self, horoscope: Horoscope):
@@ -171,6 +172,7 @@ class WheelChart(BaseChart):
         self.main_signs = len(horoscope.sign_splitter.ring[0].ring.values())
         self.sign_radius = {i: 0 for i in range(len(self.signs))}
         self.sign_coll = {i: 1 for i in range(len(self.signs))}
+        self.sign_mid_coll = dict(self.sign_coll)
 
         self._draw_structure()
         self._draw_houses()
@@ -208,6 +210,7 @@ class WheelChart(BaseChart):
             for j, _, a2, b2 in self.signs:
                 if j == i:
                     continue
+
                 if not check_arc_collision((a, b), (a2, b2), add=0):
                     continue
 
@@ -215,14 +218,24 @@ class WheelChart(BaseChart):
                 self.sign_coll[j] = 2
                 self.sign_coll[i] = 2
                 self.sign_radius[i] = 1
+                self.sign_mid_coll[i] = 2
 
-    def _get_zodiac_radius(self, sign: int) -> Tuple[float, float]:
+                mid = (a2 + b2) / 2
+                if check_arc_collision((a, b), (mid, mid)):
+                   self.sign_mid_coll[j] = 2
+
+    def _get_zodiac_radius(self, sign: int) -> Tuple[float, float, float]:
         """Get the inside and outside radius for a sign"""
-        width = ZODIAC_OUT_RADIUS - ZODIAC_IN_RADIUS
-        in_radius = ZODIAC_IN_RADIUS + (width * self.sign_radius[sign] / self.sign_coll[sign])
-        out_radius = in_radius + (width / self.sign_coll[sign])
+        radius = self.sign_radius[sign]
+        coll = self.sign_coll[sign]
+        mid_coll = self.sign_mid_coll[sign]
 
-        return in_radius, out_radius
+        width = ZODIAC_OUT_RADIUS - ZODIAC_IN_RADIUS
+        in_radius = ZODIAC_IN_RADIUS + (width * radius / coll)
+        out_radius = in_radius + (width / coll)
+        mid_radius = in_radius + (width / mid_coll)
+
+        return in_radius, mid_radius, out_radius
 
     def _draw_structure(self):
         """Draw the general wheel structure"""
@@ -238,17 +251,19 @@ class WheelChart(BaseChart):
             phi = a - self.asc_angle
             phi2 = b - self.asc_angle
 
-            in_radius, out_radius = self._get_zodiac_radius(i)
+            in_radius, mid_radius, out_radius = self._get_zodiac_radius(i)
 
             c1 = WheelCoord(rho=in_radius, ra=phi)
             c2 = WheelCoord(rho=out_radius, ra=phi2)
             c3 = WheelCoord(rho=out_radius, ra=phi)
             c4 = WheelCoord(rho=in_radius, ra=phi2)
+            c5 = WheelCoord(rho=mid_radius, ra=phi2)
 
             if self.sign_radius[i] > 0:
                 self.shapes.add(Arc(c1, c4, WheelCoord()))
             
-            self._label_quad(c1, c2, label=sign)
+            small = self.sign_mid_coll[i] > 1
+            self._label_quad(c1, c5, label=sign, small=small)
             self.shapes.add(Line(c1, c3))
             self.shapes.add(Line(c4, c2))
 
@@ -310,7 +325,7 @@ class WheelChart(BaseChart):
             if horo.position.sign != horoscope.sign_splitter.split(horo.position.abs_angle, 0):
                 sign_index = signs[-1]
 
-            in_radius, _ = self._get_zodiac_radius(sign_index)
+            in_radius, _, _ = self._get_zodiac_radius(sign_index)
             c1 = WheelCoord(rho=planet_radius, ra=nudge_phi)
             c2 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=phi)
             c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)
