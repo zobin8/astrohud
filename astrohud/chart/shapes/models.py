@@ -24,7 +24,7 @@ from .const import MINOR_SIGN_LABELS
 FONT_FILE = os.path.join(os.path.dirname(__file__), '../../font/HackNerdFont-Regular.ttf')
 IMG_FOLDER =  os.path.join(os.path.dirname(__file__), '../../img')
 BIG_FONT = ImageFont.truetype(FONT_FILE, size=96, encoding='unic')
-SMALL_FONT = ImageFont.truetype(FONT_FILE, size=56, encoding='unic')
+SMALL_FONT = ImageFont.truetype(FONT_FILE, size=48, encoding='unic')
 
 
 @dataclass(frozen=True)
