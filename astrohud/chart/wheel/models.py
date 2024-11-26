@@ -274,7 +274,7 @@ class WheelChart(BaseChart):
             if self.sign_collisions[i].middle == Collision.OUTER:
                 self.shapes.add(Arc(c1_begin, c1_end, WheelCoord()))
 
-            small = self.sign_collisions[i] != Collision.NONE
+            small = self.sign_collisions[i].middle != Collision.NONE
             self._label_quad(c1_mid, c2_mid, label=sign, small=small)
             self.shapes.add(Line(c1_begin, c2_begin))
             self.shapes.add(Line(c1_end, c2_end))
