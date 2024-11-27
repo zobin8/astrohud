@@ -1,33 +1,4 @@
-from datetime import datetime
-from datetime import timedelta
-
-from astrohud.lib.search.util import approx_filter
-from astrohud.lib.search.util import get_all_horoscopes
-from astrohud.lib.ephemeris.models import EpheSettings
 from astrohud.lib.horoscope.models import Horoscope
-
-
-def print_range(
-    start_date: datetime,
-    end_date: datetime,
-    step: timedelta,
-    settings: EpheSettings,
-):
-    all_horos = get_all_horoscopes(
-        start_date=start_date,
-        end_date=end_date,
-        step=step,
-        settings=settings,
-    )
-
-    last_approx = None
-    for date, horo in all_horos:
-        approx = approx_filter(horo.to_json())
-        if approx != last_approx:
-            print(date.astimezone(None))
-            print_horoscope(horo)
-            print()
-            last_approx = approx
 
 
 def print_horoscope(horoscope: Horoscope):

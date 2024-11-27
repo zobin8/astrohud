@@ -4,19 +4,16 @@ from datetime import datetime
 from datetime import timezone
 from typing import Tuple
 import click
-import json
 
 from astrohud.chart.star.models import StarChart
 from astrohud.chart.wheel.models import ClassicWheelChart
 from astrohud.chart.wheel.models import ModernWheelChart
 from astrohud.cli.util import print_horoscope
-from astrohud.cli.util import print_range
 from astrohud.lib.ephemeris.const import HOUSE_SYSTEMS
 from astrohud.lib.ephemeris.enums import Zodiac
 from astrohud.lib.ephemeris.models import EpheDate
 from astrohud.lib.ephemeris.models import EpheSettings
 from astrohud.lib.horoscope.models import Horoscope
-from astrohud.lib.search.util import find_datetime_range
 
 
 LATITUDE = 38.5595886
@@ -62,42 +59,6 @@ def default_settings(function):
 @click.group()
 def main():
     pass
-
-
-@main.command()
-@click.option('-s', '--start-date', type=click.DateTime(), required=True, help='Date to start searching.')
-@click.option('-e', '--end-date', type=click.DateTime(), required=True, help='Date to stop searching.')
-@click.option('--day-filter', type=str, default=None, help='JSON filter file to pick the day (planet horoscopes)')
-@click.option('--time-filter', type=str, default=None, help='JSON filter file to pick the time (aspects, ascending, etc.)')
-@default_settings
-def find(settings: EpheSettings, start_date: datetime, end_date: datetime, day_filter: str, time_filter: str):
-    start_date = start_date.astimezone(timezone.utc)
-    end_date = end_date.astimezone(timezone.utc)
-
-    if day_filter:
-        with open(day_filter) as f:
-            day_filter = json.load(f)
-    if time_filter:
-        with open(time_filter) as f:
-            time_filter = json.load(f)
-
-    ranges = find_datetime_range(
-        start_date=start_date,
-        end_date=end_date,
-        day_filter=day_filter or dict(),
-        time_filter=time_filter or dict(),
-        settings=settings,
-    )
-
-    for range in ranges:
-        print(range[0].astimezone(None).isoformat() + ' --- ' + range[1].astimezone(None).isoformat())
-        print_range(
-            start_date=range[0],
-            end_date=range[1],
-            step=range[2],
-            settings=settings,
-        )
-        print()
 
 
 @main.command()
