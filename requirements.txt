@@ -1,5 +1,5 @@
-Pillow
-click
-numpy
-pandas
-pyswisseph
+click==8.1.7
+numpy==2.1.3
+pandas==2.2.3
+pillow==11.0.0
+pyswisseph==2.10.3.2

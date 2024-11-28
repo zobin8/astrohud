@@ -1,0 +1,3 @@
+[submodule "submodules/swisseph"]
+	path = submodules/swisseph
+	url = https://github.com/aloistr/swisseph.git
