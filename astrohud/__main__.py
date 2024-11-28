@@ -16,8 +16,8 @@ from astrohud.lib.ephemeris.models import EpheSettings
 from astrohud.lib.horoscope.models import Horoscope
 
 
-LATITUDE = 38.5595886
-LONGITUDE = -121.754827
+LATITUDE = 38.5616433
+LONGITUDE = -121.6265455
 HOUSE_SYS_NAMES = ', '.join([f'{v} ({k})' for k, v in HOUSE_SYSTEMS.items()])
 ZODIAC_NAMES = [z.name for z in list(Zodiac)]
 STYLE_NAMES = {
