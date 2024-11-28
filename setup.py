@@ -5,7 +5,7 @@ import os
 with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as file:
     requirements = file.readlines()
 
-
+print(requirements)
 setup(
     name='astrohud',
     version='0.6.0',
@@ -13,5 +13,5 @@ setup(
     author='Zoe Krueger',
     author_email='astrohud@zkrueger.com',
     packages=['astrohud'],
-    requires=requirements,
+    install_requires=requirements,
 )
