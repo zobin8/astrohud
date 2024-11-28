@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## Symbol Images
 
-Astro symbols are copyright Denis Moskowitz and Alec Finlay. CC BY-SA 4.0. See https://suberic.net/~dmm/astro/constellations_t.html for more information.
+Astro symbols are copyright Denis Moskowitz and Alec Finlay. CC BY-SA 4.0. See https://suberic.net/~dmm/astro for more information.
 
 ## Fonts
 

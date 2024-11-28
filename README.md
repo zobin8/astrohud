@@ -15,6 +15,8 @@ Project is still in development. The CLI tool and image rendering are generally 
 | Web Frontend |  |
 | Date Search |  |
 
+Astro symbols used in this project: https://suberic.net/~dmm/astro
+
 ## Install
 
 1. Clone this repo and its submodules.
