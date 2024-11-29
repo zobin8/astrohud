@@ -55,55 +55,6 @@ COLLISION_ANGLE = 5
 CONJUNCTION_ANGLE = 2
 
 
-# ZTODO: Move to math submodule
-def close_angles(phi1: float, phi2: float) -> Tuple[float, float]:
-    while phi1 - phi2 > 180:
-        phi1 -= 360
-    while phi2 - phi1 > 180:
-        phi1 += 360
-
-    return phi1, phi2
-
-
-def find_collision(phi: float, avoid: List[float]) -> Optional[float]:
-    for a in avoid:
-        a, phi = close_angles(a, phi)
-
-        if abs(a - phi) < NUDGE_ANGLE:
-            return a
-    return None
-
-
-def nudge_coords(phi: float, avoid: List[float]) -> float:
-    a = find_collision(phi, avoid)
-    if a is None:
-        return phi
-    if a > phi:
-        return a - NUDGE_ANGLE
-    return a + NUDGE_ANGLE
-
-
-def compare_angles(phi1: float, phi2: float) -> float:
-    a1, a2 = close_angles(phi1, phi2)
-    return a1 - a2
-
-
-def sort_angles(phi1: float, phi2: float) -> Tuple[float, float]:
-    if compare_angles(phi1, phi2) > 0:
-        return phi2, phi1
-    return phi1, phi2
-
-
-def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float], add: float = COLLISION_ANGLE) -> bool:
-    comp_start = compare_angles(arc1[1], arc2[1])
-    if comp_start < 0:
-        cross = compare_angles(arc1[1], arc2[0]) + add
-    else:
-        cross = compare_angles(arc2[1], arc1[0]) + add
-    return cross > 0
-# END ZTODO
-
-
 @dataclass(frozen=True)
 class WheelCoord(BaseCoord):
     """Class for ecliptic coordinates in wheel chart."""
@@ -126,7 +77,7 @@ class WheelChart(BaseChart):
     
     asc_angle: float
     main_signs: int
-    signs: List[Tuple[int, Sign, float, float]]
+    signs: List[Tuple[int, Sign, AngleSegment]]
     sign_collisions: Dict[int, CollisionState]
     cusps: List[Tuple[House, float]]
 
@@ -136,7 +87,7 @@ class WheelChart(BaseChart):
 
         self.asc_angle = horoscope.ascending.abs_angle
         self.cusps = list(sorted([(k, v) for k, v in horoscope.houses.items()], key=lambda t: t[1]))
-        self.signs = [(i, t[0], *close_angles(*sort_angles(t[1], t[2]))) for i, t in enumerate(horoscope.signs)]
+        self.signs = [(i, t[0], AngleSegment(t[1], t[2])) for i, t in enumerate(horoscope.signs)]
         self.main_signs = len(horoscope.sign_splitter.ring[0].ring.values())
         self.sign_collisions = defaultdict(CollisionState)
 
@@ -170,7 +121,7 @@ class WheelChart(BaseChart):
 
     def _get_sign_collisions(self):
         """Calculate sign collisions"""
-        for i, _, a, b in self.signs:
+        for i, _, arc1 in self.signs:
             if i < self.main_signs:
                 continue
 
@@ -180,17 +131,15 @@ class WheelChart(BaseChart):
                 Collision.OUTER,
             )
 
-            for j, _, a2, b2 in self.signs:
+            for j, _, arc2 in self.signs:
                 if j == i:
                     continue
 
-                mid = (a2 + b2) / 2
-
-                if check_arc_collision((a, b), (a2, a2), add=0):
+                if arc1.check_collision(arc2.a1, limit=0):
                     self.sign_collisions[j].begin = Collision.INNER
-                if check_arc_collision((a, b), (b2, b2), add=0):
+                if arc1.check_collision(arc2.a2, limit=0):
                     self.sign_collisions[j].end = Collision.INNER
-                if check_arc_collision((a, b), (mid, mid), add=COLLISION_ANGLE):
+                if arc1.check_collision(arc2.middle(), limit=COLLISION_ANGLE):
                    self.sign_collisions[j].middle = Collision.INNER
 
     def _get_zodiac_radius(self, coll: Collision) -> Tuple[float, float]:
@@ -214,9 +163,9 @@ class WheelChart(BaseChart):
 
         self._get_sign_collisions()
         
-        for i, sign, a, b in self.signs:
-            phi = a - self.asc_angle
-            phi2 = b - self.asc_angle
+        for i, sign, arc in self.signs:
+            phi = arc.a1.value - self.asc_angle
+            phi2 = arc.a2.value - self.asc_angle
 
             r_in_begin, r_out_begin = self._get_zodiac_radius(self.sign_collisions[i].begin)
             r_in_mid, r_out_mid = self._get_zodiac_radius(self.sign_collisions[i].middle)
@@ -276,21 +225,35 @@ class WheelChart(BaseChart):
         )
         self.shapes.add(Line(coord, coord2))
 
+    def find_collision(self, phi: Angle, avoid: List[Angle]) -> Optional[Angle]:
+        for a in avoid:
+            if phi.distance(a) < NUDGE_ANGLE:
+                return a
+        return None
+
+    def nudge_coords(self, phi: Angle, avoid: List[Angle]) -> Angle:
+        a = self.find_collision(phi, avoid)
+        if a is None:
+            return phi
+        if a > phi:
+            return Angle(a.value - NUDGE_ANGLE)
+        return Angle(a.value - NUDGE_ANGLE)
+
     def _draw_planets(self, horoscope: Horoscope):
         """Draw planets to the chart"""
 
-        placed_planets = []
-        avoid = [v for _, v in self.cusps]
+        placed_planets: List[Angle] = []
+        avoid = [Angle(v) for _, v in self.cusps]
         for planet, horo in horoscope.planets.items():
             phi = horo.position.abs_angle - self.asc_angle
-            nudge_phi = nudge_coords(horo.position.abs_angle, avoid) - self.asc_angle
+            nudge_phi = self.nudge_coords(Angle(horo.position.abs_angle), avoid).value - self.asc_angle
             planet_radius = PLANET_1_RADIUS
             tip_radius = TIP_1_RADIUS
-            if find_collision(nudge_phi, placed_planets):
+            if self.find_collision(Angle(nudge_phi), placed_planets):
                 planet_radius = PLANET_2_RADIUS
                 tip_radius = TIP_2_RADIUS
 
-            signs = [i for i, s, a, b, in self.signs if s == horo.position.sign]
+            signs = [i for i, s, _ in self.signs if s == horo.position.sign]
             sign_index = signs[0]
             if horo.position.sign != horoscope.sign_splitter.split(horo.position.abs_angle, 0):
                 sign_index = signs[-1]
@@ -313,7 +276,7 @@ class WheelChart(BaseChart):
             self._draw_tip(c2, 1)
             self._draw_tip(c3, -1)
             self._draw_tip(c4, 1)
-            placed_planets.append(nudge_phi)
+            placed_planets.append(Angle(nudge_phi))
 
     def _merge_conjunctions(self, horoscope: Horoscope) -> Dict[Planet, float]:
         """Merge aspects for conjunction planets"""
@@ -325,7 +288,7 @@ class WheelChart(BaseChart):
                 uf.union(planets.planet1, planets.planet2)
         for conjoined in uf.members.values():
             anchor = positions[list(conjoined)[0]]
-            conjoined_pos = [close_angles(positions[p], anchor)[0] for p in conjoined]
+            conjoined_pos = [Angle(positions[p], anchor).value for p in conjoined]
             avg_pos = sum(conjoined_pos) / len(conjoined_pos)
 
             for p in conjoined:

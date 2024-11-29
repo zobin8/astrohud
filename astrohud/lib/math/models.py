@@ -3,6 +3,8 @@
 from typing import Any
 from typing import Dict
 from typing import Iterator
+from typing import List
+from typing import Optional
 from typing import Tuple
 
 
@@ -145,6 +147,10 @@ class AngleSegment:
     def length(self) -> float:
         """Get the segment length"""
         return self.a1.distance(self.a2)
+    
+    def middle(self) -> Angle:
+        """Get the middle angle"""
+        return self.a1.average(self.a2)
 
 
 class UnionFind:
