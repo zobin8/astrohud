@@ -5,7 +5,6 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-from astrohud.lib._base.models import BaseMatchable
 from astrohud.lib._base.models import BaseSplitter
 from astrohud.lib.constellations.models import SignSplitter
 from astrohud.lib.ephemeris.enums import House
@@ -30,7 +29,7 @@ from astrohud.lib.horoscope.enums import Dignity
 
 
 @dataclass(frozen=True)
-class PlanetTuple(BaseMatchable):
+class PlanetTuple:
     """A key type with two planets"""
 
     planet1: Planet
@@ -45,7 +44,7 @@ class PlanetTuple(BaseMatchable):
         return f'{self.planet1.name},{self.planet2.name}'
 
 
-class PlanetHoroscope(BaseMatchable):
+class PlanetHoroscope:
     """Horoscope summary for a single planet"""
 
     planet: Planet
@@ -100,7 +99,7 @@ class PlanetHoroscope(BaseMatchable):
         return Dignity.NORMAL
     
 
-class AspectHoroscope(BaseMatchable):
+class AspectHoroscope:
     """The horoscope for a single aspect"""
 
     aspect: Aspect
@@ -128,7 +127,7 @@ class AspectHoroscope(BaseMatchable):
         self.orb = 0
 
 
-class Horoscope(BaseMatchable):
+class Horoscope:
     """Complete horoscope summary"""
 
     planets: Dict[Planet, PlanetHoroscope]

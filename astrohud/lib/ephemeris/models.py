@@ -8,7 +8,6 @@ import os
 
 import swisseph as swe
 
-from astrohud.lib._base.models import BaseMatchable
 from astrohud.lib._base.models import BaseSplitter
 from astrohud.lib._base.models import Splitter2D
 from astrohud.lib.ephemeris.enums import House
@@ -47,7 +46,7 @@ class EpheDate:
         self.obliquity = results[0]
 
 
-class SignPosition(BaseMatchable):
+class SignPosition:
     """The position within a single sign"""
 
     abs_angle: float    # degrees from start
