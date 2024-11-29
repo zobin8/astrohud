@@ -5,9 +5,9 @@ from datetime import timezone
 from typing import Tuple
 import click
 
-from astrohud.chart.star.models import StarChart
-from astrohud.chart.wheel.models import ClassicWheelChart
-from astrohud.chart.wheel.models import ModernWheelChart
+from astrohud.chart.charts.star.models import StarChart
+from astrohud.chart.charts.wheel.models import ClassicWheelChart
+from astrohud.chart.charts.wheel.models import ModernWheelChart
 from astrohud.chart.renderer.pillow.models import PillowRenderer
 from astrohud.cli.util import print_horoscope
 from astrohud.lib.ephemeris.const import HOUSE_SYSTEMS
