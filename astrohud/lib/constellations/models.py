@@ -96,6 +96,7 @@ class SignSplitter(Splitter3D[Sign]):
         for sign, points in self.constellations.signs.items():
             next_points = points[1:] + points[:0]
             cusp = None
+            # ZTODO: 2024-11-28T16:31:00
             for pt1, pt2 in zip(points, next_points):
                 if (pt1[1] > declination) != (pt2[1] > declination):
                     m = (pt1[1] - pt2[1]) / (pt1[0] - pt2[0])
