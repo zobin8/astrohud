@@ -8,6 +8,7 @@ import click
 from astrohud.chart.star.models import StarChart
 from astrohud.chart.wheel.models import ClassicWheelChart
 from astrohud.chart.wheel.models import ModernWheelChart
+from astrohud.chart.renderer.pillow.models import PillowRenderer
 from astrohud.cli.util import print_horoscope
 from astrohud.lib.ephemeris.const import HOUSE_SYSTEMS
 from astrohud.lib.ephemeris.enums import Zodiac
@@ -79,8 +80,9 @@ def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], backgroun
 
     if save_img:
         chart = chart_cls(horo)
-        chart.finish()
-        img = chart.img
+        render = PillowRenderer(chart)
+        render.draw_all()
+        img = render.img
 
         for i, save_path in enumerate(save_img):
             img_i = img
@@ -88,7 +90,7 @@ def horo(settings: EpheSettings, date: datetime, save_img: Tuple[str], backgroun
             if (len(background_shift) > i):
                 shift = background_shift[i]
             if len(background) > i:
-                img_i = chart.overlay_image(background[i], shift)
+                img_i = render.overlay_image(background[i], shift)
             img_i.save(save_path)
 
 
