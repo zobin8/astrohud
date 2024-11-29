@@ -7,6 +7,8 @@ from typing import Generic
 from typing import Tuple
 from typing import TypeVar
 
+from astrohud.lib.math.models import Angle
+
 
 T = TypeVar('T')
 class BaseSplitter(ABC,Generic[T]):
@@ -18,18 +20,22 @@ class BaseSplitter(ABC,Generic[T]):
         """Constructor"""
         self.ring = dict()
 
-    def _split_deg(self, deg: float, round: bool = False) -> T:
+    def _split_deg(self, deg: float, round: bool = False, invert: bool = False) -> Tuple[float, T]:
         """Split a degree across self.ring"""
+        best_deg = None
         best_option = None
         best_dist = 360
         for limit, option in self.ring.items():
-            angle = (deg - limit) % 360
+            diff = Angle(deg).compare(Angle(limit))
+            if invert:
+                diff *= -1
             if round:
-                angle = abs(deg - limit) % 360
-            if angle < best_dist:
-                best_dist = angle
+                diff = abs(diff)
+            if diff < best_dist and diff >= 0:
+                best_dist = diff
+                best_deg = limit
                 best_option = option
-        return best_option
+        return best_deg, best_option
     
     def _split_next(self, deg: float) -> float:
         """Get the next degree across self.ring"""
@@ -38,9 +44,9 @@ class BaseSplitter(ABC,Generic[T]):
         for limit in self.ring.keys():
             if limit == deg:
                 continue
-            angle = (limit - deg) % 360
-            if angle < best_dist:
-                best_dist = angle
+            diff = -Angle(deg).compare(Angle(limit))
+            if diff < best_dist and diff >= 0:
+                best_dist = diff
                 best_option = limit
         return best_option
     
@@ -55,7 +61,8 @@ class Splitter2D(BaseSplitter[T]):
 
     def split(self, ra: float, dec: float = 0) -> T:
         """Split an ecliptic position"""
-        return self._split_deg(ra)
+        _, item = self._split_deg(ra)
+        return item
     
 
 class Splitter3D(BaseSplitter[Splitter2D[T]]):
@@ -64,15 +71,16 @@ class Splitter3D(BaseSplitter[Splitter2D[T]]):
     def split(self, ra: float, dec: float = 0) -> T:
         """Split an ecliptic position"""
 
-        splitter2d = self._split_deg(dec, round=True)
+        _, splitter2d = self._split_deg(dec, round=True)
         return splitter2d.split(ra)
     
     def get_ra_limits(self, item: T, dec: float = 0) -> Tuple[float, float]:
         """Get the min and max ra for the item"""
-        splitter = self._split_deg(dec, round=True)
+        _, splitter = self._split_deg(dec, round=True)
         for min_angle, item2 in splitter.ring.items():
             if item != item2:
                 continue
-            return min_angle, splitter._split_next(min_angle)
+            max_angle, _ = splitter._split_deg(min_angle + 1, invert=True)
+            return min_angle, max_angle
 
         return None, None

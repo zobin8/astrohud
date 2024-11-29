@@ -13,6 +13,7 @@ from astrohud.lib._base.models import Splitter2D
 from astrohud.lib._base.models import Splitter3D
 from astrohud.lib.ephemeris.enums import Sign
 from astrohud.lib.ephemeris.enums import Zodiac
+from astrohud.lib.math.models import Angle
 
 
 CONSTELLATIONS: Dict[Sign, List[Tuple[float, float]]] = defaultdict(list)
@@ -95,22 +96,19 @@ class SignSplitter(Splitter3D[Sign]):
         out = Splitter2D[Sign]()
         for sign, points in self.constellations.signs.items():
             next_points = points[1:] + points[:0]
-            cusp = None
-            # ZTODO: 2024-11-28T16:31:00
+            cusp: Angle = None
+            center = points[0][0]
             for pt1, pt2 in zip(points, next_points):
                 if (pt1[1] > declination) != (pt2[1] > declination):
                     m = (pt1[1] - pt2[1]) / (pt1[0] - pt2[0])
                     x = pt1[0] - pt1[1] / m
                     x += declination / m
-                    if cusp is not None:
-                        while x - cusp > 180:
-                            x -= 360
-                        while cusp - x > 180:
-                            x += 360
-                        if x > cusp:
-                            break
-                    cusp = x
+
+                    angle = Angle(x, center)
+                    if cusp is not None and angle > cusp:
+                        continue
+                    cusp = angle
             if cusp is not None:
-                out.ring[cusp] = sign
+                out.ring[cusp.value] = sign
 
         return out
