@@ -97,11 +97,11 @@ class AngleSegment:
     a1: Angle
     a2: Angle
 
-    def __init__(self, a1: float|Angle, a2: float|Angle):
+    def __init__(self, a1: int|float|Angle, a2: int|float|Angle):
         """Constructor"""
-        if isinstance(a1, float):
+        if not isinstance(a1, Angle):
             a1 = Angle(a1)
-        if isinstance(a2, float):
+        if not isinstance(a2, Angle):
             a2 = Angle(a2)
 
         self.a1, self.a2 = Angle.sort(a1, a2)
