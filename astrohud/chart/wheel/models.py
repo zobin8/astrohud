@@ -21,9 +21,9 @@ from astrohud.chart.shapes.models import Line
 from astrohud.lib.ephemeris.enums import House
 from astrohud.lib.ephemeris.enums import Planet
 from astrohud.lib.ephemeris.enums import Sign
+from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
 from astrohud.lib.horoscope.enums import Aspect
 from astrohud.lib.horoscope.enums import Dignity
-from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
 from astrohud.lib.horoscope.models import Horoscope
 from astrohud.lib.math.models import Angle
 from astrohud.lib.math.models import AngleSegment

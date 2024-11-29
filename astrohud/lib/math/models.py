@@ -3,8 +3,6 @@
 from typing import Any
 from typing import Dict
 from typing import Iterator
-from typing import List
-from typing import Optional
 from typing import Tuple
 
 
@@ -109,6 +107,7 @@ class AngleSegment:
         self.a1, self.a2 = Angle.sort(a1, a2)
 
     # Comparison methods
+
     def __eq__(self, other: Any):
         """Compare equality to another AngleSegment"""
         if not isinstance(other, AngleSegment):

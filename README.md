@@ -11,7 +11,7 @@ Project is still in development. The CLI tool and image rendering are generally 
 | IAU Splitting | ✔️ |
 | Planetarium (3D) Splitting | ✔️ |
 | Wheel Chart Rendering | ✔️ |
-| Rendering API |  |
+| Web API |  |
 | Web Frontend |  |
 | Date Search |  |
 
