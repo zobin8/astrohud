@@ -10,6 +10,7 @@ import numpy as np
 from PIL import Image
 from PIL import ImageFont
 
+from astrohud.lib.math.models import Angle
 from astrohud.chart._base.const import COLOR_WHITE
 from astrohud.chart._base.models import BaseChart
 from astrohud.chart._base.models import BaseCoord
@@ -81,16 +82,9 @@ class Arc(BaseShape):
         phi1 = np.arctan2(a[1], a[0]) * 180 / np.pi
         phi2 = np.arctan2(b[1], b[0]) * 180 / np.pi
 
-        # ZTODO angle math
-        while phi1 - 180 > phi2:
-            phi2 += 360
-        while phi1 + 180 < phi2:
-            phi2 -= 360
+        a1, a2 = Angle.sort(Angle(phi1), Angle(phi2))
 
-        if phi1 > phi2:
-            phi1, phi2 = phi2, phi1
-
-        chart.draw.arc(box_min.tuple + box_max.tuple, phi1, phi2, fill=COLOR_WHITE, width=self.width)
+        chart.draw.arc(box_min.tuple + box_max.tuple, a1.value, a2.value, fill=COLOR_WHITE, width=self.width)
 
 
 @dataclass(frozen=True)

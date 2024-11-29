@@ -25,6 +25,9 @@ from astrohud.lib.horoscope.enums import Aspect
 from astrohud.lib.horoscope.enums import Dignity
 from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
 from astrohud.lib.horoscope.models import Horoscope
+from astrohud.lib.math.models import Angle
+from astrohud.lib.math.models import AngleSegment
+from astrohud.lib.math.models import UnionFind
 
 from .enums import Collision
 
@@ -80,15 +83,6 @@ def nudge_coords(phi: float, avoid: List[float]) -> float:
     return a + NUDGE_ANGLE
 
 
-def get_center(phi1: float, phi2: float) -> float:
-    while phi1 - 180 > phi2:
-        phi2 += 360
-    while phi1 + 180 < phi2:
-        phi2 -= 360
-
-    return (phi1 + phi2) / 2
-
-
 def compare_angles(phi1: float, phi2: float) -> float:
     a1, a2 = close_angles(phi1, phi2)
     return a1 - a2
@@ -107,42 +101,6 @@ def check_arc_collision(arc1: Tuple[float, float], arc2: Tuple[float, float], ad
     else:
         cross = compare_angles(arc2[1], arc1[0]) + add
     return cross > 0
-
-
-class UnionFind:
-    parents: Dict[Any, Any]
-    members: Dict[Any, set]
-
-    def __init__(self) -> None:
-        self.parents = dict()
-        self.members = dict()
-
-    def add(self, item: Any):
-        if item not in self.parents:
-            self.parents[item] = item
-            self.members[item] = {item}
-
-    def find(self, item: Any) -> Any:
-        parent = self.parents.get(item, None)
-        if parent is None or parent == item:
-            return parent
-        self.parents[item] = self.find(parent)
-        return self.parents[item]
-    
-    def union(self, item1: Any, item2: Any):
-        self.add(item1)
-        self.add(item2)
-        item1 = self.find(item1)
-        item2 = self.find(item2)
-
-        if item1 == item2:
-            return
-        
-        if len(self.members[item1]) < len(self.members[item2]):
-            item1, item2 = item2, item1
-
-        self.parents[item2] = item1
-        self.members[item1] = self.members[item1].union(self.members.pop(item2))
 # END ZTODO
 
 
@@ -202,7 +160,7 @@ class WheelChart(BaseChart):
         """Create a label centered in a rounded quadrilateral"""
 
         rho = (c1.rho + c2.rho) / 2
-        phi = get_center(c1.ra, c2.ra)
+        phi = Angle(c1.ra).average(Angle(c2.ra)).value
 
         self.shapes.add(Label(
             center=WheelCoord(ra=phi, rho=rho, dec=0),
@@ -446,7 +404,7 @@ class ModernWheelChart(WheelChart):
         elif aspect == Aspect.OPPOSITION:
             self.shapes.add(Arc(b, c, a))
 
-    def _get_aspect_arcs(self, positions: Dict[Planet, float], horoscope: Horoscope) -> Tuple[List[Tuple[float, float]], List[Aspect]]:
+    def _get_aspect_arcs(self, positions: Dict[Planet, float], horoscope: Horoscope) -> Tuple[List[AngleSegment], List[Aspect]]:
         """Get arcs for all aspects"""
 
         arcs = list()
@@ -455,18 +413,17 @@ class ModernWheelChart(WheelChart):
             a1 = positions[planets.planet1]
             a2 = positions[planets.planet2]
 
-            a1, a2 = sort_angles(a1, a2)
             if aspect.aspect != Aspect.CONJUNCTION:
-                arc = close_angles(a1, a2)
+                arc = AngleSegment(a1, a2)
                 if arc not in arcs:
                     arcs.append(arc)
                     aspects.append(aspect.aspect)
         return arcs, aspects
 
-    def _get_arc_groups(self, arcs: List[Tuple[float, float]], collision_matrix: List[List[bool]]) -> List[List[int]]:
+    def _get_arc_groups(self, arcs: List[AngleSegment], collision_matrix: List[List[bool]]) -> List[List[int]]:
         """Create groups for arcs so they don't collide"""
 
-        arc_order = sorted(list(range(len(arcs))), key=lambda i: arcs[i][1] - arcs[i][0])
+        arc_order = sorted(list(range(len(arcs))), key=lambda i: arcs[i].length())
         arc_groups: List[List[int]] = [[]]
         for i in arc_order:
             level = 0
@@ -478,25 +435,25 @@ class ModernWheelChart(WheelChart):
             arc_groups[level].append(i)
         return arc_groups
 
-    def _get_arc_bridged_segments(self, arcs: List[Tuple[float, float]], collision_matrix: List[List[bool]], arc_groups: List[List[int]]) -> Dict[float, List[int]]:
+    def _get_arc_bridged_segments(self, arcs: List[AngleSegment], collision_matrix: List[List[bool]], arc_groups: List[List[int]]) -> Dict[Angle, List[int]]:
         """Find crossovers in arcs"""
 
-        segments: Dict[float, List[int]] = defaultdict(list)
+        segments: Dict[Angle, List[int]] = defaultdict(list)
         for level, group in enumerate(arc_groups):
             for i in group:
                 for level2 in range(level):
                     for j in arc_groups[level2]:
                         if collision_matrix[i][j]:
                             for spoke in arcs[i]:
-                                if abs(compare_angles(spoke, arcs[j][0])) < 0.1:
+                                if spoke.distance(arcs[j].a1) < 0.1:
                                     continue
-                                if abs(compare_angles(spoke, arcs[j][1])) < 0.1:
+                                if spoke.distance(arcs[j].a2) < 0.1:
                                     continue
-                                if(check_arc_collision(arcs[j], (spoke, spoke))):
+                                if arcs[j].check_collision(spoke, limit=COLLISION_ANGLE):
                                     segments[spoke].append(level2 + 1)
         return segments
 
-    def _draw_arc_aspects(self, arcs: List[Tuple[float, float]], arc_groups: List[List[int]], aspects: List[Aspect], segments: Dict[float, List[int]]):
+    def _draw_arc_aspects(self, arcs: List[AngleSegment], arc_groups: List[List[int]], aspects: List[Aspect], segments: Dict[Angle, List[int]]):
         """Draw arcs for aspects"""
 
         radius = HOUSE_IN_RADIUS
@@ -506,7 +463,7 @@ class ModernWheelChart(WheelChart):
             radius -= step_radius
             radii += [radius]
             for i in group:
-                phi2, phi1 = arcs[i]
+                phi2, phi1 = arcs[i].a1.value, arcs[i].a2.value
 
                 c1 = WheelCoord(rho=radius, ra=phi1)
                 c2 = WheelCoord(rho=radius, ra=phi2)
@@ -531,8 +488,8 @@ class ModernWheelChart(WheelChart):
                         if r2 != radius:
                             r2 += min(BRIDGE_RADIUS, step_radius / 4)
 
-                        c3 = WheelCoord(rho=r1, ra=angle)
-                        c4 = WheelCoord(rho=r2, ra=angle)
+                        c3 = WheelCoord(rho=r1, ra=angle.value)
+                        c4 = WheelCoord(rho=r2, ra=angle.value)
                         self.shapes.add(Line(c3, c4))
 
     def _draw_aspects(self, horoscope: Horoscope):
@@ -543,7 +500,7 @@ class ModernWheelChart(WheelChart):
         positions = self._merge_conjunctions(horoscope)    
         arcs, aspects = self._get_aspect_arcs(positions, horoscope)
 
-        collision_matrix = [[check_arc_collision(a1, a2) for a1 in arcs] for a2 in arcs]
+        collision_matrix = [[a1.check_collision(a2, limit=COLLISION_ANGLE) for a1 in arcs] for a2 in arcs]
         arc_groups = self._get_arc_groups(arcs, collision_matrix)
 
         segments = self._get_arc_bridged_segments(arcs, collision_matrix, arc_groups)
