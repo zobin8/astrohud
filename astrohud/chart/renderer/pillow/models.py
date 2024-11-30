@@ -118,9 +118,6 @@ class PillowRenderer(BaseRenderer):
         size = IMG_SIZE_SMALL if shape.small else IMG_SIZE_BIG
 
         label = shape.label
-        if shape.label in MINOR_SIGN_LABELS:
-            label = MINOR_SIGN_LABELS[shape.label]
-
         if isinstance(label, str):
             self.draw.text(center.tuple, label, font=font, fill=COLOR_WHITE, anchor='mm')
         else:
