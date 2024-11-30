@@ -190,6 +190,7 @@ class WheelChart(BaseChart):
 
     def _draw_houses(self):
         """Draw segmentations for the houses"""
+        # TODO: Fix bug with some house systems
 
         spoke_labels = ['A', 'I', 'D', 'M']
         for segment, house in self.houses.items():
@@ -238,7 +239,7 @@ class WheelChart(BaseChart):
             return phi
         if a > phi:
             return Angle(a.value - NUDGE_ANGLE)
-        return Angle(a.value - NUDGE_ANGLE)
+        return Angle(a.value + NUDGE_ANGLE)
 
     def _draw_planets(self, horoscope: Horoscope):
         """Draw planets to the chart"""
