@@ -132,7 +132,8 @@ class Horoscope:
 
     planets: Dict[Planet, PlanetHoroscope]
     ascending: SignPosition
-    signs: Dict[AngleSegment, Sign]
+    main_signs: Dict[AngleSegment, Sign]
+    extra_signs: Dict[AngleSegment, Sign]
     houses: Dict[AngleSegment, House]
     aspects: Dict[PlanetTuple, AspectHoroscope]
 
@@ -162,17 +163,18 @@ class Horoscope:
         self.houses = self.house_splitter.ring
         
         # Add main signs
-        self.signs = dict()
+        self.main_signs = dict()
         for sign in self.sign_splitter._split_deg(0).ring.values():
             seg = self.sign_splitter.get_ra_limits(sign, 0)
-            self.signs[seg] = sign
+            self.main_signs[seg] = sign
         
         # Add extra signs
+        self.extra_signs = dict()
         for sign, ra, dec in extra_signs:
             if sign == self.sign_splitter.split(ra, 0):
                 continue
             seg = self.sign_splitter.get_ra_limits(sign, dec)
-            self.signs[seg] = sign
+            self.extra_signs[seg] = sign
     
     def _get_all_aspects(self, settings: EpheSettings) -> Dict[PlanetTuple, AspectHoroscope]:
         self.aspects = dict()

@@ -87,8 +87,9 @@ class WheelChart(BaseChart):
 
         self.asc_angle = horoscope.ascending.abs_angle
         self.houses = horoscope.houses
-        self.signs = [(i, tup[1], tup[0]) for i, tup in enumerate(horoscope.signs.items())]
-        self.main_signs = len(horoscope.sign_splitter._split_deg(0).ring.values())
+        signs = list(horoscope.main_signs.items()) + list(horoscope.extra_signs.items())
+        self.signs = [(i, tup[1], tup[0]) for i, tup in enumerate(signs)]
+        self.main_signs = len(horoscope.main_signs)
         self.sign_collisions = defaultdict(CollisionState)
 
         self._draw_structure()
@@ -132,7 +133,7 @@ class WheelChart(BaseChart):
             )
 
             for j, _, arc2 in self.signs:
-                if j == i:
+                if j == i or j >= self.main_signs:
                     continue
 
                 if arc1.check_collision(arc2.a1, limit=0):
@@ -162,8 +163,6 @@ class WheelChart(BaseChart):
         self.shapes.add(Circle(center=WheelCoord(), edge=WheelCoord(rho=HOUSE_IN_RADIUS)))
 
         self._get_sign_collisions()
-        print(self.signs)
-        print(self.sign_collisions)
         
         for i, sign, arc in self.signs:
             phi = arc.a1.value - self.asc_angle
