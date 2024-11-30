@@ -122,6 +122,7 @@ class WheelChart(BaseChart):
 
     def _get_sign_collisions(self):
         """Calculate sign collisions"""
+        # TODO: Fix bug with 2021-07-26T12:00:00
         for i, _, arc1 in self.signs:
             if i < self.main_signs:
                 continue
