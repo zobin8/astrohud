@@ -25,7 +25,7 @@ from astrohud.lib.horoscope.const import TRIPLICITIES
 from astrohud.lib.horoscope.const import TRIPLICITY_TIME
 from astrohud.lib.horoscope.enums import Aspect
 from astrohud.lib.horoscope.enums import Dignity
-from astrohud.lib.horoscope.enums import Dignity
+from astrohud.lib.math.models import AngleSegment
 
 
 @dataclass(frozen=True)
@@ -132,9 +132,8 @@ class Horoscope:
 
     planets: Dict[Planet, PlanetHoroscope]
     ascending: SignPosition
-    signs: List[Tuple[Sign, float, float]]
-    extra_signs: Dict[Sign, Tuple[float, float]]
-    houses: Dict[House, float]
+    signs: Dict[AngleSegment, Sign]
+    houses: Dict[AngleSegment, House]
     aspects: Dict[PlanetTuple, AspectHoroscope]
 
     house_splitter: HouseSplitter
@@ -160,20 +159,20 @@ class Horoscope:
         self._get_all_aspects(settings)
 
         self.ascending = self.house_splitter.get_ascendant(self.sign_splitter)
-        self.houses = {v: k for k, v in self.house_splitter.ring.items()}
+        self.houses = self.house_splitter.ring
         
         # Add main signs
-        self.signs = []
-        for sign in self.sign_splitter.ring[0].ring.values():
-            a, b = self.sign_splitter.get_ra_limits(sign, 0)
-            self.signs.append((sign, a, b))
+        self.signs = dict()
+        for sign in self.sign_splitter._split_deg(0).ring.values():
+            seg = self.sign_splitter.get_ra_limits(sign, 0)
+            self.signs[seg] = sign
         
         # Add extra signs
         for sign, ra, dec in extra_signs:
             if sign == self.sign_splitter.split(ra, 0):
                 continue
-            a, b = self.sign_splitter.get_ra_limits(sign, dec)
-            self.signs.append((sign, a, b))
+            seg = self.sign_splitter.get_ra_limits(sign, dec)
+            self.signs[seg] = sign
     
     def _get_all_aspects(self, settings: EpheSettings) -> Dict[PlanetTuple, AspectHoroscope]:
         self.aspects = dict()

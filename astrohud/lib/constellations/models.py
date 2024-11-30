@@ -14,6 +14,7 @@ from astrohud.lib._base.models import Splitter3D
 from astrohud.lib.ephemeris.enums import Sign
 from astrohud.lib.ephemeris.enums import Zodiac
 from astrohud.lib.math.models import Angle
+from astrohud.lib.math.models import AngleSegment
 
 
 CONSTELLATIONS: Dict[Sign, List[Tuple[float, float]]] = defaultdict(list)
@@ -31,7 +32,7 @@ def init_constellations():
 
 
 class Constellations:
-    signs: Dict[Sign, List[Tuple[float, float]]]
+    signs: Dict[Sign, List[Tuple[Angle, Angle]]]
     obliquity: float
 
     def __init__(self, obliquity: float):
@@ -42,7 +43,7 @@ class Constellations:
             points = [self._celestial_to_ecliptic(x, y) for x, y in celestial_points]
             self.signs[sign] = points
 
-    def _celestial_to_ecliptic(self, celestial_x: float, celestial_y: float) -> Tuple[float, float]:
+    def _celestial_to_ecliptic(self, celestial_x: float, celestial_y: float) -> Tuple[Angle, Angle]:
         """Convert celestial coordinates (constellations) to ecliptic coordinates
         
         Formula derived by:
@@ -68,7 +69,7 @@ class Constellations:
         if ex_neg > ex_pos:
             ex *= -1
     
-        return math.degrees(ex), math.degrees(ey)
+        return Angle(math.degrees(ex)), Angle(math.degrees(ey))
 
 
 class SignSplitter(Splitter3D[Sign]):
@@ -84,31 +85,35 @@ class SignSplitter(Splitter3D[Sign]):
         elif zodiac == Zodiac.PLANETARIUM:
             for declination in range(-88, 90, 2):
                 ring = self._get_iau_ring(declination)
-                self.ring[declination] = ring
+                segment = AngleSegment(declination - 1, declination + 1)
+                self.ring[segment] = ring
         else:
             ring = Splitter2D[Sign]()
             for i in range(12):
-                ring.ring[i * 30] = Sign(i)
+                start = i * 30
+                ring.ring[AngleSegment(start, start + 30)] = Sign(i)
 
-            self.ring[0] = ring
+            self.default = ring
 
     def _get_iau_ring(self, declination: float) -> Splitter2D[Sign]:
         out = Splitter2D[Sign]()
         for sign, points in self.constellations.signs.items():
-            next_points = points[1:] + points[:0]
-            cusp: Angle = None
-            center = points[0][0]
+            next_points = points[1:] + points[:1]
+            arc = None
             for pt1, pt2 in zip(points, next_points):
-                if (pt1[1] > declination) != (pt2[1] > declination):
-                    m = (pt1[1] - pt2[1]) / (pt1[0] - pt2[0])
-                    x = pt1[0] - pt1[1] / m
-                    x += declination / m
+                if (pt1[1].value > declination) == (pt2[1].value > declination):
+                    continue
 
-                    angle = Angle(x, center)
-                    if cusp is not None and angle > cusp:
-                        continue
-                    cusp = angle
-            if cusp is not None:
-                out.ring[cusp.value] = sign
+                m = (pt1[1].compare(pt2[1])) / (pt1[0].compare(pt2[0]))
+                x = Angle(pt1[0].value + (declination - pt1[1].value) / m)
+
+                if arc is None:
+                    arc = AngleSegment(x, x)
+                elif x < arc.a1:
+                    arc = AngleSegment(x, arc.a2)
+                elif x > arc.a2:
+                    arc = AngleSegment(arc.a1, x)
+            if arc is not None:
+                out.ring[arc] = sign
 
         return out

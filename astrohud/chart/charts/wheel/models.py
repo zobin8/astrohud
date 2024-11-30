@@ -79,16 +79,16 @@ class WheelChart(BaseChart):
     main_signs: int
     signs: List[Tuple[int, Sign, AngleSegment]]
     sign_collisions: Dict[int, CollisionState]
-    cusps: List[Tuple[House, float]]
+    houses: Dict[AngleSegment, float]
 
     def __init__(self, horoscope: Horoscope):
         """Constructor"""
         super().__init__()
 
         self.asc_angle = horoscope.ascending.abs_angle
-        self.cusps = list(sorted([(k, v) for k, v in horoscope.houses.items()], key=lambda t: t[1]))
-        self.signs = [(i, t[0], AngleSegment(t[1], t[2])) for i, t in enumerate(horoscope.signs)]
-        self.main_signs = len(horoscope.sign_splitter.ring[0].ring.values())
+        self.houses = horoscope.houses
+        self.signs = [(i, tup[1], tup[0]) for i, tup in enumerate(horoscope.signs.items())]
+        self.main_signs = len(horoscope.sign_splitter._split_deg(0).ring.values())
         self.sign_collisions = defaultdict(CollisionState)
 
         self._draw_structure()
@@ -189,11 +189,10 @@ class WheelChart(BaseChart):
     def _draw_houses(self):
         """Draw segmentations for the houses"""
 
-        next_cusps = self.cusps[1:] + [self.cusps[0]]
         spoke_labels = ['A', 'I', 'D', 'M']
-        for x, cusp in enumerate(self.cusps):
-            phi = cusp[1] - self.asc_angle
-            phi2 = next_cusps[x][1] - self.asc_angle
+        for segment, house in self.houses.items():
+            phi = segment.a1.value - self.asc_angle
+            phi2 = segment.a2.value - self.asc_angle
             width = 8
 
             c1 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=phi)
@@ -201,10 +200,10 @@ class WheelChart(BaseChart):
             c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)
             c4 = WheelCoord(rho=ZODIAC_IN_RADIUS, ra=phi)
 
-            if (cusp[0].value - 1) % 3 == 0:
+            if (house.value - 1) % 3 == 0:
                 width = 15
                 label_width = (HOUSE_OUT_RADIUS - HOUSE_IN_RADIUS) / 3
-                label =  spoke_labels[(cusp[0].value - 1) // 3]
+                label =  spoke_labels[(house.value - 1) // 3]
 
                 c5 = WheelCoord(rho=HOUSE_IN_RADIUS + label_width, ra=phi)
                 c6 = WheelCoord(rho=HOUSE_OUT_RADIUS - label_width, ra=phi)
@@ -214,7 +213,7 @@ class WheelChart(BaseChart):
                 self.shapes.add(Line(c4, c6, width=width))
             else:
                 self.shapes.add(Line(c1, c4))
-            self._label_quad(c1, c2, str(cusp[0].value))
+            self._label_quad(c1, c2, str(house.value))
 
     def _draw_tip(self, coord: WheelCoord, direction: float):
         """Draw a small planetary position tip"""
@@ -243,7 +242,7 @@ class WheelChart(BaseChart):
         """Draw planets to the chart"""
 
         placed_planets: List[Angle] = []
-        avoid = [Angle(v) for _, v in self.cusps]
+        avoid = [seg.a1 for seg in self.houses]
         for planet, horo in horoscope.planets.items():
             phi = horo.position.abs_angle - self.asc_angle
             nudge_phi = self.nudge_coords(Angle(horo.position.abs_angle), avoid).value - self.asc_angle

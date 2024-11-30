@@ -132,7 +132,7 @@ class AngleSegment:
     # Math methods
 
     def check_collision(self, other: Any, limit: float) -> bool:
-        """Check if it collides with another AngleSegment, within a given limit"""
+        """Check if it collides with another AngleSegment or Angle, within a given limit"""
         if isinstance(other, Angle):
             other = AngleSegment(other, other)
 

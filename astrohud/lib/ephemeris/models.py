@@ -14,6 +14,7 @@ from astrohud.lib.ephemeris.enums import House
 from astrohud.lib.ephemeris.enums import Planet
 from astrohud.lib.ephemeris.enums import Sign
 from astrohud.lib.ephemeris.enums import Zodiac
+from astrohud.lib.math.models import AngleSegment
 
 
 def init_ephe():
@@ -107,7 +108,9 @@ class HouseSplitter(Splitter2D[House]):
 
         self.ascendant_ra = angles[0]
 
-        self.ring = {c: House(i + 1) for i, c in enumerate(cusps)}
+        next_cusps = cusps[1:] + cusps[:1]
+        houses = [House(i + 1) for i in range(len(cusps))]
+        self.ring = {AngleSegment(c1, c2): h for h, c1, c2 in zip(houses, cusps, next_cusps)}
 
     def get_ascendant(self, signs: BaseSplitter[Sign]) -> SignPosition:
         return SignPosition(signs, self, self.ascendant_ra)
