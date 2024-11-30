@@ -8,7 +8,7 @@ with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as file:
 print(requirements)
 setup(
     name='astrohud',
-    version='0.6.0',
+    version='0.6.1',
     description='Get and chart astral data',
     author='Zoe Krueger',
     author_email='astrohud@zkrueger.com',
