@@ -162,6 +162,8 @@ class WheelChart(BaseChart):
         self.shapes.add(Circle(center=WheelCoord(), edge=WheelCoord(rho=HOUSE_IN_RADIUS)))
 
         self._get_sign_collisions()
+        print(self.signs)
+        print(self.sign_collisions)
         
         for i, sign, arc in self.signs:
             phi = arc.a1.value - self.asc_angle
