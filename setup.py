@@ -9,7 +9,7 @@ print(requirements)
 setup(
     name='astrohud',
     version='0.6.0',
-    description='Get and chart astro data',
+    description='Get and chart astral data',
     author='Zoe Krueger',
     author_email='astrohud@zkrueger.com',
     packages=['astrohud'],

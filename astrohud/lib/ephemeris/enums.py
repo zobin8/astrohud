@@ -125,6 +125,17 @@ class House(Enum):
     UNCONSCIOUS_12 = 12
 
 
+class HouseSystem(Enum):
+    PLACIDUS = 'P'
+    KOCH = 'K'
+    PORPHYRIUS = 'O'
+    REGIOMONTANUS = 'R'
+    CAMPANUS = 'C'
+    EQUAL_ASCENDANT = 'A'
+    WHOLE_SIGNS = 'W'
+    EQUAL_ARIES = 'N'
+
+
 class Zodiac(Enum):
     TROPICAL = 0
     SIDEREAL = 1

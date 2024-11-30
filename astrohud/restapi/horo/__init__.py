@@ -1,0 +1,1 @@
+"""Submodule for horoscope namespace"""
