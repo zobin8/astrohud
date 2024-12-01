@@ -2,6 +2,7 @@
 
 from .enums import HouseSystem
 from .enums import Zodiac
+from .enums import Planet
 
 
 HOUSE_SYS_DESCRIPTIONS = {
@@ -15,9 +16,26 @@ HOUSE_SYS_DESCRIPTIONS = {
     HouseSystem.WHOLE_SIGNS.name: 'Each sign is a house, starting with Aries',
 }
 
+
 ZODIAC_DESCRIPTIONS = {
     Zodiac.TROPICAL.name: '12 equal segments starting at the equinox',
     Zodiac.SIDEREAL.name: '12 equal segments corrected using fixed stars',
     Zodiac.IAU.name: '13 signs matching the star\'s 2D position on the ecliptic',
     Zodiac.PLANETARIUM.name: 'All 88 IAU signs, using the 3D position of the stars',
+}
+
+
+PLANET_DESCRIPTIONS = {
+    Planet.SUN.name: 'Classical planet, star',
+    Planet.MOON.name: 'Classical planet, moon',
+    Planet.MERCURY.name: 'Classical planet, inner planet',
+    Planet.VENUS.name: 'Classical planet, inner planet',
+    Planet.MARS.name: 'Classical planet, inner planet',
+    Planet.JUPITER.name: 'Classical planet, outer planet',
+    Planet.SATURN.name: 'Classical planet, outer planet',
+    Planet.URANUS.name: 'Outer planet',
+    Planet.NEPTUNE.name: 'Outer planet',
+    Planet.PLUTO.name: 'Minor planet, dwarf planet',
+    Planet.PALLAS.name: 'Minor planet, asteroid',
+    Planet.ERIS.name: 'Minor planet, dwarf planet',
 }

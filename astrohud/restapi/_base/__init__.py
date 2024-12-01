@@ -1,0 +1,1 @@
+"""Base objects for restapi"""

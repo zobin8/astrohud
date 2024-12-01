@@ -1,12 +1,18 @@
-"""Schema for horoscopes"""
+"""Schema for the horo endpoints"""
 
-from marshmallow import Schema
-from marshmallow import fields
+from flask_restx import fields
+from flask_restx import Model
 
+# Option
+option = Model('Option', dict(
+    value=fields.String(),
+    description=fields.String(),
+))
 
-class OptionChoiceSchema(Schema):
-    """Schema for listing option choices"""
-    planets = fields.Dict(fields.String, fields.String)
-    zodiac = fields.Dict(fields.String, fields.String)
-    house_sys = fields.Dict(fields.String, fields.String)
-    style = fields.Dict(fields.String, fields.String)
+# List of all options for each setting
+settings_options = Model('SettingsOptions', dict(
+    planets=fields.List(fields.Nested(option)),
+    zodiac=fields.List(fields.Nested(option)),
+    house_sys=fields.List(fields.Nested(option)),
+    style=fields.List(fields.Nested(option)),
+))
