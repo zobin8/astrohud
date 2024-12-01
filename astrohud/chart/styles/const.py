@@ -1,8 +1,8 @@
 """Constants for different charts"""
 
-from astrohud.chart.charts.wheel.models import WheelChart
-from astrohud.chart.charts.wheel.models import ModernWheelChart
-from astrohud.chart.charts.star.models import StarChart
+from astrohud.chart.styles.wheel.models import WheelChart
+from astrohud.chart.styles.wheel.models import ModernWheelChart
+from astrohud.chart.styles.star.models import StarChart
 
 from .enums import ChartStyle
 

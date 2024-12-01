@@ -5,8 +5,8 @@ from datetime import timezone
 from typing import Tuple
 import click
 
-from astrohud.chart.charts.enums import ChartStyle
-from astrohud.chart.charts.const import CHART_STYLE_CLASSES
+from astrohud.chart.styles.enums import ChartStyle
+from astrohud.chart.styles.const import CHART_STYLE_CLASSES
 from astrohud.chart.renderer.pillow.models import PillowRenderer
 from astrohud.cli.util import print_horoscope
 from astrohud.lib.ephemeris.enums import HouseSystem

@@ -8,8 +8,8 @@ from typing import Dict
 from flask_restx import Namespace
 from flask_restx import Resource
 
-from astrohud.chart.charts.const import CHART_STYLE_CLASSES
-from astrohud.chart.charts.const import CHART_STYLE_DESCRIPTIONS
+from astrohud.chart.styles.const import CHART_STYLE_CLASSES
+from astrohud.chart.styles.const import CHART_STYLE_DESCRIPTIONS
 from astrohud.chart.renderer.json.models import JsonRenderer
 from astrohud.lib.ephemeris.const import HOUSE_SYS_DESCRIPTIONS
 from astrohud.lib.ephemeris.const import PLANET_DESCRIPTIONS
