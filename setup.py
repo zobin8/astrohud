@@ -3,15 +3,19 @@
 from setuptools import setup
 from setuptools import find_packages
 import os
+import json
 
 
-with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as file:
+parent_dir = os.path.dirname(__file__)
+with open(os.path.join(parent_dir, 'requirements.txt')) as file:
     requirements = file.readlines()
+with open(os.path.join(parent_dir, 'frontend/package.json')) as file:
+    version = json.load(file)['version']
 
 
 setup(
     name='astrohud',
-    version='0.6.1',
+    version=version,
     description='Get and chart astral data',
     author='Zoe Krueger',
     author_email='astrohud@zkrueger.com',
