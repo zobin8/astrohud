@@ -28,7 +28,8 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "../astrohud/assets",
+                "output": "/assets"
               }
             ],
             "styles": [
@@ -96,7 +97,8 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "../astrohud/assets"
+                "input": "../astrohud/assets",
+                "output": "/assets"
               }
             ],
             "styles": [
