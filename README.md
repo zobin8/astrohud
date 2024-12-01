@@ -12,8 +12,8 @@ Project is still in development. The CLI tool and image rendering are generally 
 | Stellar (3D) Splitting | ✔️ |
 | Wheel Chart Rendering | ✔️ |
 | Star Chart Rendering |  |
-| Web API | ... |
-| Web Frontend |  |
+| Web API | Viable |
+| Web Frontend | In development |
 | Date Search |  |
 
 Astro symbols used in this project: https://suberic.net/~dmm/astro
