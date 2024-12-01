@@ -28,6 +28,8 @@ horo_settings = Model('HoroSettings', dict(
     latitude=fields.Float(),
     longitude=fields.Float(),
     date=fields.DateTime(),
+
+    style=fields.String(),
 ))
 
 # Horoscope
@@ -41,7 +43,6 @@ sign_pos = Model('SignPosition', dict(
 ))
 
 planet_horo = Model('PlanetHoroscope', dict(
-    planet=fields.String(attribute='planet.name'),
     position=fields.Nested(sign_pos),
     dignity=fields.String(attribute='dignity.name'),
     retrograde=fields.Boolean(),
@@ -66,6 +67,7 @@ horoscope = Model('Horoscope', dict(
     planets=fields.Nested(planets),
     ascending=fields.Nested(sign_pos),
     aspects=fields.Nested(aspects),
+    chart=fields.Raw(),
 ))
 
 

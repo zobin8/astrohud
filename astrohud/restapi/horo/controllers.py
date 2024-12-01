@@ -10,7 +10,7 @@ from flask_restx import Resource
 
 from astrohud.chart.charts.const import CHART_STYLE_CLASSES
 from astrohud.chart.charts.const import CHART_STYLE_DESCRIPTIONS
-from astrohud.chart.charts.enums import ChartStyle
+from astrohud.chart.renderer.json.models import JsonRenderer
 from astrohud.lib.ephemeris.const import HOUSE_SYS_DESCRIPTIONS
 from astrohud.lib.ephemeris.const import PLANET_DESCRIPTIONS
 from astrohud.lib.ephemeris.const import ZODIAC_DESCRIPTIONS
@@ -49,9 +49,9 @@ class Options(Resource):
         )
 
 
-@api.route('/calculate')
-class Calculate(Resource):
-    """Calculate horoscope"""
+@api.route('/chart')
+class Chart(Resource):
+    """Chart horoscope"""
 
     @api.marshal_with(horoscope)
     @input_schema(api, horo_settings)
@@ -65,6 +65,7 @@ class Calculate(Resource):
         latitude: float,
         longitude: float,
         date: str,
+        style: str,
     ):
         """Get a horoscope"""
         
@@ -82,6 +83,15 @@ class Calculate(Resource):
         date = date.astimezone(timezone.utc)
 
         horo = Horoscope(ed=EpheDate(date), settings=settings)
-        horo.planets = {k.name: v for k, v in horo.planets.items()}
-        horo.aspects = {str(k): v for k, v in horo.aspects.items()}
-        return horo
+
+        chart_cls = CHART_STYLE_CLASSES[style]
+        chart = chart_cls(horo)
+        render = JsonRenderer(chart)
+        render.draw_all()
+
+        return dict(
+            planets={k.name: v for k, v in horo.planets.items()},
+            aspects={str(k): v for k, v in horo.aspects.items()},
+            ascending=horo.ascending,
+            chart=render.json
+        )
