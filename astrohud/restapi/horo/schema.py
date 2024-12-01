@@ -2,17 +2,70 @@
 
 from flask_restx import fields
 from flask_restx import Model
+from flask_restx import Namespace
 
-# Option
+
+# Settings options
+
 option = Model('Option', dict(
     value=fields.String(),
     description=fields.String(),
 ))
 
-# List of all options for each setting
 settings_options = Model('SettingsOptions', dict(
     planets=fields.List(fields.Nested(option)),
     zodiac=fields.List(fields.Nested(option)),
     house_sys=fields.List(fields.Nested(option)),
     style=fields.List(fields.Nested(option)),
 ))
+
+
+# Horoscope
+
+sign_pos = Model('SignPosition', dict(
+    abs_angle=fields.Float(),
+    sign=fields.String(attribute='sign.name'),
+    declination=fields.Float(),
+    speed=fields.Float(),
+    house=fields.String(attribute='house.name'),
+))
+
+planet_horo = Model('PlanetHoroscope', dict(
+    planet=fields.String(attribute='planet.name'),
+    position=fields.Nested(sign_pos),
+    dignity=fields.String(attribute='dignity.name'),
+    retrograde=fields.Boolean(),
+    positive_score=fields.Float(),
+    negative_score=fields.Float(),
+))
+
+aspect_horo = Model('AspectHoroscope', dict(
+    aspect=fields.String(attribute='aspect.name'),
+    orb=fields.Float(),
+))
+
+planets = Model('Planets', {
+    '*': fields.Wildcard(fields.Nested(planet_horo)),
+})
+
+aspects = Model('Aspects', {
+    '*': fields.Wildcard(fields.Nested(aspect_horo)),
+})
+
+horoscope = Model('Horoscope', dict(
+    planets=fields.Nested(planets),
+    ascending=fields.Nested(sign_pos),
+    aspects=fields.Nested(aspects),
+))
+
+
+def register_schema(api: Namespace):
+    """Register schema with the api"""
+    api.add_model(option.name, option)
+    api.add_model(settings_options.name, settings_options)
+    api.add_model(sign_pos.name, sign_pos)
+    api.add_model(planet_horo.name, planet_horo)
+    api.add_model(aspect_horo.name, aspect_horo)
+    api.add_model(planets.name, planets)
+    api.add_model(aspects.name, aspects)
+    api.add_model(horoscope.name, horoscope)

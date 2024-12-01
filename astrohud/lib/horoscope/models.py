@@ -39,15 +39,14 @@ class PlanetTuple:
         if self.planet2.value < self.planet1.value:
             self.planet1, self.planet2 = self.planet2, self.planet1
 
-    def to_json(self):
-        """Turn self into a matchable json type. Override."""
+    def __str__(self):
+        """Return as string"""
         return f'{self.planet1.name},{self.planet2.name}'
 
 
 class PlanetHoroscope:
     """Horoscope summary for a single planet"""
 
-    planet: Planet
     position: SignPosition
     dignity: Dignity
     retrograde: bool
@@ -55,9 +54,8 @@ class PlanetHoroscope:
     negative_score: float = 0
 
     def __init__(self, ed: EpheDate, planet: Planet, zodiac: Zodiac, signs: BaseSplitter[Sign], houses: BaseSplitter[House]):
-        self.planet = planet
         self.position = SignPosition.from_planet(ed.ut, planet, zodiac, signs, houses)
-        self.dignity = self._get_planet_dignity(signs)
+        self.dignity = self._get_planet_dignity(planet, signs)
         self.retrograde = self.position.speed < 0
         self._assign_scores()
 
@@ -77,7 +75,7 @@ class PlanetHoroscope:
             if score < 0:
                 self.negative_score += score
 
-    def _get_planet_dignity(self, signs: BaseSplitter[Sign]) -> Dignity:
+    def _get_planet_dignity(self, planet: Planet, signs: BaseSplitter[Sign]) -> Dignity:
         sign = self.position.sign
         house = self.position.house
         opposite = signs.split(self.position.abs_angle + 180, -self.position.declination)
@@ -85,16 +83,16 @@ class PlanetHoroscope:
         if sign in ELEMENT_ASSOCIATION:
             triplicity = TRIPLICITIES[ELEMENT_ASSOCIATION[sign]][TRIPLICITY_TIME[house]]
 
-        if RULERS[sign] == self.planet:
+        if RULERS[sign] == planet:
             return Dignity.DIGNITY
-        if RULERS[opposite] == self.planet:
+        if RULERS[opposite] == planet:
             return Dignity.DETRIMENT
-        if self.planet in EXALTATIONS:
-            if EXALTATIONS[self.planet][0] == sign:
+        if planet in EXALTATIONS:
+            if EXALTATIONS[planet][0] == sign:
                 return Dignity.EXALTATION
-            if EXALTATIONS[self.planet][0] == opposite:
+            if EXALTATIONS[planet][0] == opposite:
                 return Dignity.FALL
-        if self.planet == triplicity:
+        if planet == triplicity:
             return Dignity.TRIPLICITY
         return Dignity.NORMAL
     
