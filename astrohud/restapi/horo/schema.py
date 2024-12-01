@@ -19,6 +19,16 @@ settings_options = Model('SettingsOptions', dict(
     style=fields.List(fields.Nested(option)),
 ))
 
+horo_settings = Model('HoroSettings', dict(
+    orb_limit=fields.Float(),
+    conjunction_limit=fields.Float(),
+    zodiac=fields.String(),
+    house_sys=fields.String(),
+    
+    latitude=fields.Float(),
+    longitude=fields.Float(),
+    date=fields.DateTime(),
+))
 
 # Horoscope
 
@@ -63,6 +73,7 @@ def register_schema(api: Namespace):
     """Register schema with the api"""
     api.add_model(option.name, option)
     api.add_model(settings_options.name, settings_options)
+    api.add_model(horo_settings.name, horo_settings)
     api.add_model(sign_pos.name, sign_pos)
     api.add_model(planet_horo.name, planet_horo)
     api.add_model(aspect_horo.name, aspect_horo)

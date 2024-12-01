@@ -1,9 +1,12 @@
 """Controllers for the horoscope namespace"""
 
-from flask_restx import Namespace
-from flask_restx import Resource
 from datetime import datetime
 from datetime import timezone
+from typing import Any
+from typing import Dict
+
+from flask_restx import Namespace
+from flask_restx import Resource
 
 from astrohud.chart.charts.const import CHART_STYLE_CLASSES
 from astrohud.chart.charts.const import CHART_STYLE_DESCRIPTIONS
@@ -18,9 +21,10 @@ from astrohud.lib.ephemeris.models import EpheSettings
 from astrohud.lib.ephemeris.models import init_ephe
 from astrohud.lib.horoscope.models import Horoscope
 from astrohud.lib.horoscope.models import Horoscope
-
+from astrohud.restapi._base.decorators import input_schema
 
 from .models import Option
+from .schema import horo_settings
 from .schema import horoscope
 from .schema import register_schema
 from .schema import settings_options
@@ -30,12 +34,12 @@ api = Namespace('horo', description='Create horoscopes')
 register_schema(api)
 
 
-@api.route('/settings')
-class Settings(Resource):
-    """Get horoscope settings"""
+@api.route('/options')
+class Options(Resource):
+    """Get horoscope options"""
 
     @api.marshal_with(settings_options)
-    def get(self):
+    def get(self) -> Dict[str, Any]:
         """List available options"""
         return dict(
             planets=Option.make_options(PLANET_DESCRIPTIONS),
@@ -45,24 +49,36 @@ class Settings(Resource):
         )
 
 
-@api.route('/')
-class Horo(Resource):
-    """Get horoscope"""
+@api.route('/calculate')
+class Calculate(Resource):
+    """Calculate horoscope"""
 
     @api.marshal_with(horoscope)
-    def get(self):
+    @input_schema(api, horo_settings)
+    def post(
+        self,
+        orb_limit: float,
+        conjunction_limit: float,
+        zodiac: str,
+        house_sys: str,
+        
+        latitude: float,
+        longitude: float,
+        date: str,
+    ):
         """Get a horoscope"""
+        
         init_ephe()
 
         settings = EpheSettings(
-            orb_limit=2,
-            conjunction_limit=5,
-            location=(38.5616433, -121.6265455),
-            zodiac=Zodiac.PLANETARIUM,
-            house_sys=bytes('P', 'latin1'),
+            orb_limit=orb_limit,
+            conjunction_limit=conjunction_limit,
+            location=(latitude, longitude),
+            zodiac=getattr(Zodiac, zodiac),
+            house_sys=bytes(getattr(HouseSystem, house_sys).value, 'latin1'),
         )
 
-        date = datetime.now(timezone.utc)
+        date = datetime.fromisoformat(date)
         date = date.astimezone(timezone.utc)
 
         horo = Horoscope(ed=EpheDate(date), settings=settings)
