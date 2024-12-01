@@ -81,7 +81,7 @@ class SignSplitter(Splitter3D[Sign]):
         self.constellations = Constellations(obliquity)
 
         if zodiac == Zodiac.IAU:
-            self.ring[0] = self._get_iau_ring(0)
+            self.default = self._get_iau_ring(0)
         elif zodiac == Zodiac.PLANETARIUM:
             for declination in range(-88, 90, 2):
                 ring = self._get_iau_ring(declination)
