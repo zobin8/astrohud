@@ -9,10 +9,10 @@ Project is still in development. The CLI tool and image rendering are generally 
 | Basic ephemeris | ✔️ |
 | Tropical/Sideareal Splitting | ✔️ |
 | IAU Splitting | ✔️ |
-| Planetarium (3D) Splitting | ✔️ |
+| Stellar (3D) Splitting | ✔️ |
 | Wheel Chart Rendering | ✔️ |
 | Star Chart Rendering |  |
-| Web API |  |
+| Web API | ... |
 | Web Frontend |  |
 | Date Search |  |
 

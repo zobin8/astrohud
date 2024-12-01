@@ -32,7 +32,7 @@ def default_settings(function):
     @click.option('-c', '--conjunction-limit', type=float, default=5, show_default=True, help='Maximum orb limit for conjunction, in degrees.')
     @click.option('-l', '--location', type=float, nargs=2, default=(LATITUDE, LONGITUDE), help='Latitude, Longitude coordinates for location. Defaults to Davis, CA')
     @click.option(
-        '--zodiac', default=Zodiac.PLANETARIUM.name, type=click.Choice(ZODIAC_NAMES, case_sensitive=False), show_default=True,
+        '--zodiac', default=Zodiac.STELLAR.name, type=click.Choice(ZODIAC_NAMES, case_sensitive=False), show_default=True,
         help=f'Zodiac system to use. Can be: {",".join(ZODIAC_NAMES)}'
     )
     @click.option('--aspects/--no-aspects', default=True, is_flag=True, show_default=True, help='Calculate planetary aspects')

@@ -140,4 +140,4 @@ class Zodiac(Enum):
     TROPICAL = 0
     SIDEREAL = 1
     IAU = 2
-    PLANETARIUM = 3
+    STELLAR = 3

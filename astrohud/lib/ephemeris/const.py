@@ -20,8 +20,8 @@ HOUSE_SYS_DESCRIPTIONS = {
 ZODIAC_DESCRIPTIONS = {
     Zodiac.TROPICAL.name: '12 equal segments starting at the equinox',
     Zodiac.SIDEREAL.name: '12 equal segments corrected using fixed stars',
-    Zodiac.IAU.name: '13 signs matching the star\'s 2D position on the ecliptic',
-    Zodiac.PLANETARIUM.name: 'All 88 IAU signs, using the 3D position of the stars',
+    Zodiac.IAU.name: '13 signs, based on the IAU divisions of the ecliptic',
+    Zodiac.STELLAR.name: 'All 88 IAU signs, using the 3D position of the stars',
 }
 
 
