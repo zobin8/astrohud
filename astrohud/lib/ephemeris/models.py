@@ -19,7 +19,7 @@ from astrohud.lib.math.models import AngleSegment
 
 def init_ephe():
     dirname = os.path.dirname(__file__)
-    ephe_path = os.path.join(dirname, '../../../submodules/swisseph/ephe')
+    ephe_path = os.path.join(dirname, '../../submodules/swisseph/ephe')
     swe.set_ephe_path(ephe_path)
 
 

@@ -23,7 +23,7 @@ CONSTELLATIONS: Dict[Sign, List[Tuple[float, float]]] = defaultdict(list)
 def init_constellations():
     dirname = os.path.dirname(__file__)
 
-    constellation_path = os.path.join(dirname, '../../data/constellations_all.csv')
+    constellation_path = os.path.join(dirname, '../../assets/data/constellations_all.csv')
     df = pd.read_csv(constellation_path)
     df['Angle'] = ((df.Seconds / 60 + df.Minutes) / 60 + df.Hours) * 15
     df['Sign'] = df.Sign.apply(lambda n: getattr(Sign, n.upper()))

@@ -10,7 +10,7 @@ from astrohud.chart._base.models import BaseCoord
 from astrohud.chart._base.models import BaseShape
 
 
-IMG_FOLDER =  os.path.join(os.path.dirname(__file__), '../../img')
+IMG_FOLDER =  os.path.join(os.path.dirname(__file__), '../../assets/img')
 
 
 @dataclass(frozen=True)

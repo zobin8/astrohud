@@ -18,7 +18,6 @@ from astrohud.chart._base.models import BaseShape
 from astrohud.chart._base.models import XY
 from astrohud.chart.shapes.const import IMG_SIZE_BIG
 from astrohud.chart.shapes.const import IMG_SIZE_SMALL
-from astrohud.chart.shapes.const import MINOR_SIGN_LABELS
 from astrohud.chart.shapes.models import Arc
 from astrohud.chart.shapes.models import Circle
 from astrohud.chart.shapes.models import Label
@@ -26,7 +25,7 @@ from astrohud.chart.shapes.models import Line
 from astrohud.lib.math.models import Angle
 
 
-FONT_FILE = os.path.join(os.path.dirname(__file__), '../../font/HackNerdFont-Regular.ttf')
+FONT_FILE = os.path.join(os.path.dirname(__file__), '../../../assets/font/HackNerdFont-Regular.ttf')
 BIG_FONT = ImageFont.truetype(FONT_FILE, size=96, encoding='unic')
 SMALL_FONT = ImageFont.truetype(FONT_FILE, size=48, encoding='unic')
 
