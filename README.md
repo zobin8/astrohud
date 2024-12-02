@@ -2,7 +2,7 @@
 
 Tool for creating and charting astral data.
 
-Project is still in development. The CLI tool and image rendering are generally complete. A web API is planned for future development.
+Project is still in development. The CLI tool and image rendering are generally complete. The website is WIP.
 
 | Feature | Status |
 |---------|--------|
@@ -12,8 +12,8 @@ Project is still in development. The CLI tool and image rendering are generally 
 | Stellar (3D) Splitting | ✔️ |
 | Wheel Chart Rendering | ✔️ |
 | Star Chart Rendering |  |
-| Web API | Viable |
-| Web Frontend | In development |
+| Web API | WIP |
+| Web Frontend | WIP |
 | Date Search |  |
 
 Astro symbols used in this project: https://suberic.net/~dmm/astro
