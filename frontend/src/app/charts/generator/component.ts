@@ -3,7 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
-  selector: 'chart',
+  selector: 'generator',
   standalone: true,
   imports: [
     RouterOutlet,
@@ -12,8 +12,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './component.html',
   styleUrl: './component.scss'
 })
-export class ChartComponent {
-  title = 'chart';
+export class GeneratorComponent {
+  title = 'generator';
 
   constructor() {
 

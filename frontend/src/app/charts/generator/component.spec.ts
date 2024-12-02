@@ -1,15 +1,15 @@
 import { TestBed } from '@angular/core/testing';
-import { ChartComponent } from './component';
+import { GeneratorComponent } from './component';
 
-describe('ChartComponent', () => {
+describe('GeneratorComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChartComponent],
+      imports: [GeneratorComponent],
     }).compileComponents();
   });
 
   it('should create the component', () => {
-    const fixture = TestBed.createComponent(ChartComponent);
+    const fixture = TestBed.createComponent(GeneratorComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
