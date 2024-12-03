@@ -106,6 +106,8 @@ class HouseSplitter(Splitter2D[House]):
             **flag_args
         )
 
+        # Fix combination of W/N House Sys with IAU/Stellar zodiac
+
         self.ascendant_ra = angles[0]
 
         next_cusps = cusps[1:] + cusps[:1]

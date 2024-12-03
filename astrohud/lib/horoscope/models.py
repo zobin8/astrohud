@@ -138,7 +138,12 @@ class Horoscope:
     house_splitter: HouseSplitter
     sign_splitter: SignSplitter
 
+    date: EpheDate
+    settings: EpheSettings
+
     def __init__(self, ed: EpheDate, settings: EpheSettings):
+        self.date = ed
+        self.settings = settings
         self.sign_splitter = SignSplitter(ed.obliquity, settings.zodiac)
         self.house_splitter = HouseSplitter(ed.ut, settings)
 

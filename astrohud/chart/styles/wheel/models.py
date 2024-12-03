@@ -19,6 +19,7 @@ from astrohud.chart.shapes.models import Circle
 from astrohud.chart.shapes.models import Label
 from astrohud.chart.shapes.models import Line
 from astrohud.lib.ephemeris.enums import House
+from astrohud.lib.ephemeris.enums import HouseSystem
 from astrohud.lib.ephemeris.enums import Planet
 from astrohud.lib.ephemeris.enums import Sign
 from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
@@ -55,6 +56,23 @@ COLLISION_ANGLE = 5
 CONJUNCTION_ANGLE = 2
 
 
+HOUSE_SYS_WITH_ASCENDING = [
+    HouseSystem.PLACIDUS.value,
+    HouseSystem.KOCH.value,
+    HouseSystem.PORPHYRIUS.value,
+    HouseSystem.REGIOMONTANUS.value,
+    HouseSystem.CAMPANUS.value,
+    HouseSystem.EQUAL_ASCENDANT.value,
+]
+HOUSE_SYS_WITH_MIDHEAVEN = [
+    HouseSystem.PLACIDUS.value,
+    HouseSystem.KOCH.value,
+    HouseSystem.PORPHYRIUS.value,
+    HouseSystem.REGIOMONTANUS.value,
+    HouseSystem.CAMPANUS.value,
+]
+
+
 @dataclass(frozen=True)
 class WheelCoord(BaseCoord):
     """Class for ecliptic coordinates in wheel chart."""
@@ -79,7 +97,9 @@ class WheelChart(BaseChart):
     main_signs: int
     signs: List[Tuple[int, Sign, AngleSegment]]
     sign_collisions: Dict[int, CollisionState]
-    houses: Dict[AngleSegment, float]
+    houses: Dict[AngleSegment, House]
+    label_ascending: bool
+    label_midheaven: bool
 
     def __init__(self, horoscope: Horoscope):
         """Constructor"""
@@ -91,6 +111,10 @@ class WheelChart(BaseChart):
         self.signs = [(i, tup[1], tup[0]) for i, tup in enumerate(signs)]
         self.main_signs = len(horoscope.main_signs)
         self.sign_collisions = defaultdict(CollisionState)
+
+        house_sys = horoscope.settings.house_sys.decode()
+        self.label_ascending = house_sys in HOUSE_SYS_WITH_ASCENDING
+        self.label_midheaven = house_sys in HOUSE_SYS_WITH_MIDHEAVEN
 
         self._draw_structure()
         self._draw_houses()
@@ -192,7 +216,12 @@ class WheelChart(BaseChart):
         """Draw segmentations for the houses"""
         # TODO: Fix bug with some house systems
 
-        spoke_labels = ['A', 'I', 'D', 'M']
+        spoke_labels = dict()
+        if self.label_ascending:
+            spoke_labels.update({0: 'A', 6: 'D'})
+        if self.label_midheaven:
+            spoke_labels.update({3: 'I', 9: 'M'})
+
         for segment, house in self.houses.items():
             phi = segment.a1.value - self.asc_angle
             phi2 = segment.a2.value - self.asc_angle
@@ -203,10 +232,10 @@ class WheelChart(BaseChart):
             c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)
             c4 = WheelCoord(rho=ZODIAC_IN_RADIUS, ra=phi)
 
-            if (house.value - 1) % 3 == 0:
+            if (house.value - 1) in spoke_labels:
                 width = 15
                 label_width = (HOUSE_OUT_RADIUS - HOUSE_IN_RADIUS) / 3
-                label =  spoke_labels[(house.value - 1) // 3]
+                label =  spoke_labels[(house.value - 1)]
 
                 c5 = WheelCoord(rho=HOUSE_IN_RADIUS + label_width, ra=phi)
                 c6 = WheelCoord(rho=HOUSE_OUT_RADIUS - label_width, ra=phi)
