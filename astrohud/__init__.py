@@ -1,1 +1,1 @@
-"""Work with astrology data"""
+"""Work with stellar data"""

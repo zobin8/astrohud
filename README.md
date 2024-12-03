@@ -1,6 +1,6 @@
 # AstroHud
 
-Tool for creating and charting astral data.
+Tool for creating and charting stellar data.
 
 Project is still in development. The CLI tool and image rendering are generally complete. The website is WIP.
 

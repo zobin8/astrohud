@@ -1,1 +1,1 @@
-"""Library for working with astrology data"""
+"""Library for working with stellar data"""
