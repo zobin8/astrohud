@@ -130,6 +130,7 @@ class Horoscope:
 
     planets: Dict[Planet, PlanetHoroscope]
     ascending: SignPosition
+    midheaven: SignPosition
     main_signs: Dict[AngleSegment, Sign]
     extra_signs: Dict[AngleSegment, Sign]
     houses: Dict[AngleSegment, House]
@@ -162,7 +163,7 @@ class Horoscope:
 
         self._get_all_aspects(settings)
 
-        self.ascending = self.house_splitter.get_ascendant(self.sign_splitter)
+        self.ascending, self.midheaven = self.house_splitter.get_ascmc(self.sign_splitter)
         self.houses = self.house_splitter.ring
         
         # Add main signs

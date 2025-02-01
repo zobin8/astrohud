@@ -109,10 +109,13 @@ class HouseSplitter(Splitter2D[House]):
         # TODO: Fix combination of W/N House Sys with IAU/Stellar zodiac
 
         self.ascendant_ra = angles[0]
+        self.midheaven_ra = angles[1]
 
         next_cusps = cusps[1:] + cusps[:1]
         houses = [House(i + 1) for i in range(len(cusps))]
         self.ring = {AngleSegment(c1, c2): h for h, c1, c2 in zip(houses, cusps, next_cusps)}
 
-    def get_ascendant(self, signs: BaseSplitter[Sign]) -> SignPosition:
-        return SignPosition(signs, self, self.ascendant_ra)
+    def get_ascmc(self, signs: BaseSplitter[Sign]) -> Tuple[SignPosition, SignPosition]:
+        asc = SignPosition(signs, self, self.ascendant_ra)
+        mc = SignPosition(signs, self, self.midheaven_ra)
+        return asc, mc

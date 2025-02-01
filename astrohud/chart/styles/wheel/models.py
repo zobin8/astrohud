@@ -74,6 +74,7 @@ class WheelChart(BaseChart):
     """Standard natal chart designed as an ecliptic wheel"""
     
     asc_angle: float
+    mid_angle: float
     main_signs: int
     signs: List[Tuple[int, Sign, AngleSegment]]
     sign_collisions: Dict[int, CollisionState]
@@ -84,6 +85,7 @@ class WheelChart(BaseChart):
         super().__init__()
 
         self.asc_angle = horoscope.ascending.abs_angle
+        self.mid_angle = horoscope.midheaven.abs_angle
         self.houses = horoscope.houses
         signs = list(horoscope.main_signs.items()) + list(horoscope.extra_signs.items())
         self.signs = [(i, tup[1], tup[0]) for i, tup in enumerate(signs)]
@@ -92,6 +94,7 @@ class WheelChart(BaseChart):
 
         self._draw_structure()
         self._draw_houses()
+        self._draw_ascmc()
         self._draw_planets(horoscope)
         self._draw_aspects(horoscope)
     
@@ -186,6 +189,24 @@ class WheelChart(BaseChart):
             self.shapes.add(Line(c1_begin, c2_begin))
             self.shapes.add(Line(c1_end, c2_end))
 
+    def _draw_ascmc(self):
+        """Draw ascending and midheaven points"""
+        labels = {
+            'A': self.asc_angle,
+            'M': self.mid_angle,
+            'D': self.asc_angle + 180,
+            'I': self.mid_angle + 180,
+        }
+        for label, ra in labels.items():
+            phi = ra - self.asc_angle
+            c1 = WheelCoord(rho=ZODIAC_OUT_RADIUS, ra=phi)
+            c2 = WheelCoord(rho=ZODIAC_OUT_RADIUS + TIP_RADIUS, ra=phi)
+            c3 = WheelCoord(rho=ZODIAC_OUT_RADIUS + 2 * TIP_RADIUS, ra=phi)
+
+            self.shapes.add(Line(c1, c2))
+            self.shapes.add(Label(c3, label, small=True))
+
+
     def _draw_houses(self):
         """Draw segmentations for the houses"""
         # TODO: Fix bug with some house systems
@@ -196,7 +217,6 @@ class WheelChart(BaseChart):
 
             c1 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=phi)
             c2 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi2)
-            c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)
             c4 = WheelCoord(rho=ZODIAC_IN_RADIUS, ra=phi)
 
             self.shapes.add(Line(c1, c4))
