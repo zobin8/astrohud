@@ -200,8 +200,8 @@ class WheelChart(BaseChart):
         for label, ra in labels.items():
             phi = ra - self.asc_angle
             c1 = WheelCoord(rho=ZODIAC_OUT_RADIUS, ra=phi)
-            c2 = WheelCoord(rho=ZODIAC_OUT_RADIUS + TIP_RADIUS, ra=phi)
-            c3 = WheelCoord(rho=ZODIAC_OUT_RADIUS + 2 * TIP_RADIUS, ra=phi)
+            c2 = WheelCoord(rho=ZODIAC_OUT_RADIUS - TIP_RADIUS, ra=phi)
+            c3 = WheelCoord(rho=ZODIAC_OUT_RADIUS - 2 * TIP_RADIUS, ra=phi)
 
             self.shapes.add(Line(c1, c2))
             self.shapes.add(Label(c3, label, small=True))
