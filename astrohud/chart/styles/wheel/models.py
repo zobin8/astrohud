@@ -56,23 +56,6 @@ COLLISION_ANGLE = 5
 CONJUNCTION_ANGLE = 2
 
 
-HOUSE_SYS_WITH_ASCENDING = [
-    HouseSystem.PLACIDUS.value,
-    HouseSystem.KOCH.value,
-    HouseSystem.PORPHYRIUS.value,
-    HouseSystem.REGIOMONTANUS.value,
-    HouseSystem.CAMPANUS.value,
-    HouseSystem.EQUAL_ASCENDANT.value,
-]
-HOUSE_SYS_WITH_MIDHEAVEN = [
-    HouseSystem.PLACIDUS.value,
-    HouseSystem.KOCH.value,
-    HouseSystem.PORPHYRIUS.value,
-    HouseSystem.REGIOMONTANUS.value,
-    HouseSystem.CAMPANUS.value,
-]
-
-
 @dataclass(frozen=True)
 class WheelCoord(BaseCoord):
     """Class for ecliptic coordinates in wheel chart."""
@@ -98,8 +81,6 @@ class WheelChart(BaseChart):
     signs: List[Tuple[int, Sign, AngleSegment]]
     sign_collisions: Dict[int, CollisionState]
     houses: Dict[AngleSegment, House]
-    label_ascending: bool
-    label_midheaven: bool
 
     def __init__(self, horoscope: Horoscope):
         """Constructor"""
@@ -111,10 +92,6 @@ class WheelChart(BaseChart):
         self.signs = [(i, tup[1], tup[0]) for i, tup in enumerate(signs)]
         self.main_signs = len(horoscope.main_signs)
         self.sign_collisions = defaultdict(CollisionState)
-
-        house_sys = horoscope.settings.house_sys.decode()
-        self.label_ascending = house_sys in HOUSE_SYS_WITH_ASCENDING
-        self.label_midheaven = house_sys in HOUSE_SYS_WITH_MIDHEAVEN
 
         self._draw_structure()
         self._draw_houses()
@@ -216,35 +193,16 @@ class WheelChart(BaseChart):
         """Draw segmentations for the houses"""
         # TODO: Fix bug with some house systems
 
-        spoke_labels = dict()
-        if self.label_ascending:
-            spoke_labels.update({0: 'A', 6: 'D'})
-        if self.label_midheaven:
-            spoke_labels.update({3: 'I', 9: 'M'})
-
         for segment, house in self.houses.items():
             phi = segment.a1.value - self.asc_angle
             phi2 = segment.a2.value - self.asc_angle
-            width = 8
 
             c1 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=phi)
             c2 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi2)
             c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)
             c4 = WheelCoord(rho=ZODIAC_IN_RADIUS, ra=phi)
 
-            if (house.value - 1) in spoke_labels:
-                width = 15
-                label_width = (HOUSE_OUT_RADIUS - HOUSE_IN_RADIUS) / 3
-                label =  spoke_labels[(house.value - 1)]
-
-                c5 = WheelCoord(rho=HOUSE_IN_RADIUS + label_width, ra=phi)
-                c6 = WheelCoord(rho=HOUSE_OUT_RADIUS - label_width, ra=phi)
-
-                self._label_quad(c1, c3, label, small=True)
-                self.shapes.add(Line(c1, c5, width=width))
-                self.shapes.add(Line(c4, c6, width=width))
-            else:
-                self.shapes.add(Line(c1, c4))
+            self.shapes.add(Line(c1, c4))
             self._label_quad(c1, c2, str(house.value))
 
     def _draw_tip(self, coord: WheelCoord, direction: float):
@@ -279,10 +237,8 @@ class WheelChart(BaseChart):
             phi = horo.position.abs_angle - self.asc_angle
             nudge_phi = self.nudge_coords(Angle(horo.position.abs_angle), avoid).value - self.asc_angle
             planet_radius = PLANET_1_RADIUS
-            tip_radius = TIP_1_RADIUS
             if self.find_collision(Angle(nudge_phi), placed_planets):
                 planet_radius = PLANET_2_RADIUS
-                tip_radius = TIP_2_RADIUS
 
             signs = [i for i, s, _ in self.signs if s == horo.position.sign]
             sign_index = signs[0]
@@ -294,16 +250,8 @@ class WheelChart(BaseChart):
             c2 = WheelCoord(rho=HOUSE_IN_RADIUS, ra=phi)
             c3 = WheelCoord(rho=HOUSE_OUT_RADIUS, ra=phi)
             c4 = WheelCoord(rho=in_radius, ra=phi)
-            c5 = WheelCoord(rho=tip_radius, ra=nudge_phi)
-
-            label = ''
-            if horo.dignity != Dignity.NORMAL:
-                label += f'{ESSENTIAL_SCORE[horo.dignity][0]:1}'
-            if horo.retrograde:
-                label += 'R'
             
             self.shapes.add(Label(c1, planet))
-            self.shapes.add(Label(c5, label, small=True))
             self._draw_tip(c2, 1)
             self._draw_tip(c3, -1)
             self._draw_tip(c4, 1)
