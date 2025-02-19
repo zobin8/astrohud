@@ -35,5 +35,6 @@ class Dignity(Enum):
     FALL = 1
     NORMAL = 2
     TRIPLICITY = 3
-    EXALTATION = 4
-    DIGNITY = 5
+    DECAN = 4
+    EXALTATION = 5
+    DIGNITY = 6

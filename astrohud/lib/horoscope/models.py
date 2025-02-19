@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 
 from astrohud.lib._base.models import BaseSplitter
@@ -16,6 +17,7 @@ from astrohud.lib.ephemeris.models import EpheSettings
 from astrohud.lib.ephemeris.models import HouseSplitter
 from astrohud.lib.ephemeris.models import SignPosition
 from astrohud.lib.horoscope.const import ASPECT_DEGREES
+from astrohud.lib.horoscope.const import DECANS
 from astrohud.lib.horoscope.const import ELEMENT_ASSOCIATION
 from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
 from astrohud.lib.horoscope.const import EXALTATIONS
@@ -25,6 +27,7 @@ from astrohud.lib.horoscope.const import TRIPLICITIES
 from astrohud.lib.horoscope.const import TRIPLICITY_TIME
 from astrohud.lib.horoscope.enums import Aspect
 from astrohud.lib.horoscope.enums import Dignity
+from astrohud.lib.math.models import Angle
 from astrohud.lib.math.models import AngleSegment
 
 
@@ -54,34 +57,59 @@ class PlanetHoroscope:
     negative_score: float = 0
 
     def __init__(self, ed: EpheDate, planet: Planet, zodiac: Zodiac, signs: BaseSplitter[Sign], houses: BaseSplitter[House]):
+        """Constructor"""
         self.position = SignPosition.from_planet(ed.ut, planet, zodiac, signs, houses)
         self.dignity = self._get_planet_dignity(planet, signs)
         self.retrograde = self.position.speed < 0
         self._assign_scores()
 
     def add_aspect(self, aspect: Aspect):
+        """Add an aspect to the scores"""
         self._add_scores(ESSENTIAL_SCORE[aspect])
 
     def _assign_scores(self) -> Tuple[float, float]:
+        """Assign scores based on horo aspects"""
         scores = list(ESSENTIAL_SCORE[self.dignity])
         if self.retrograde:
             scores += [RETROGRADE_SCORE]
         self._add_scores(scores)
 
     def _add_scores(self, scores: List[float]):
+        """Combine positive and negative scores"""
         for score in scores:
             if score > 0:
                 self.positive_score += score
             if score < 0:
                 self.negative_score += score
 
+    def _get_decan(self, signs: BaseSplitter[Sign]) -> Optional[Planet]:
+        """Get the ruling decan of the region"""
+        sign = self.position.sign
+
+        if sign not in DECANS:
+            return None
+        
+        sign_limits = signs.get_ra_limits(sign, self.position.declination)
+        face_length = sign_limits.length() / 3
+        for face_index in range(3):
+            face_start = face_index * face_length + sign_limits.a1.standard_value()
+            face = AngleSegment(face_start, face_start + face_length)
+            if face.check_collision(Angle(self.position.abs_angle), 0):
+                return DECANS[sign][face_index]
+
+        return None
+
+
     def _get_planet_dignity(self, planet: Planet, signs: BaseSplitter[Sign]) -> Dignity:
+        """Get the dignity type of a planet"""
         sign = self.position.sign
         house = self.position.house
         opposite = signs.split(self.position.abs_angle + 180, -self.position.declination)
         triplicity = None
         if sign in ELEMENT_ASSOCIATION:
             triplicity = TRIPLICITIES[ELEMENT_ASSOCIATION[sign]][TRIPLICITY_TIME[house]]
+
+        decan = self._get_decan(signs)            
 
         if RULERS[sign] == planet:
             return Dignity.DIGNITY
@@ -92,6 +120,8 @@ class PlanetHoroscope:
                 return Dignity.EXALTATION
             if EXALTATIONS[planet][0] == opposite:
                 return Dignity.FALL
+        if planet == decan:
+            return Dignity.DECAN
         if planet == triplicity:
             return Dignity.TRIPLICITY
         return Dignity.NORMAL

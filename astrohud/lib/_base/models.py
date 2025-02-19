@@ -35,6 +35,11 @@ class BaseSplitter(ABC,Generic[T]):
     def split(self, ra: float, dec: float = 0) -> T:
         """Split an ecliptic position"""
         pass
+
+    @abstractmethod
+    def get_ra_limits(self, item: T, dec: float = 0) -> AngleSegment:
+        """Get the min and max ra for the item"""
+        pass
     
 
 class Splitter2D(BaseSplitter[T]):
@@ -45,6 +50,15 @@ class Splitter2D(BaseSplitter[T]):
         item = self._split_deg(ra)
         return item
     
+    def get_ra_limits(self, item: T, dec: float = 0) -> AngleSegment:
+        """Get the min and max ra for the item"""
+        for segment, item2 in self.ring.items():
+            if item != item2:
+                continue
+            return segment
+
+        return None
+
 
 class Splitter3D(BaseSplitter[Splitter2D[T]]):
     """Split across right ascension and declination"""
@@ -58,9 +72,4 @@ class Splitter3D(BaseSplitter[Splitter2D[T]]):
     def get_ra_limits(self, item: T, dec: float = 0) -> AngleSegment:
         """Get the min and max ra for the item"""
         splitter = self._split_deg(dec)
-        for segment, item2 in splitter.ring.items():
-            if item != item2:
-                continue
-            return segment
-
-        return None
+        return splitter.get_ra_limits(item)

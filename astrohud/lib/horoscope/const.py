@@ -66,6 +66,22 @@ TRIPLICITIES = {
 }
 
 
+DECANS = {
+    Sign.ARIES: (Planet.MARS, Planet.SUN, Planet.VENUS),
+    Sign.TAURUS: (Planet.MERCURY, Planet.MOON, Planet.SATURN),
+    Sign.GEMINI: (Planet.JUPITER, Planet.MARS, Planet.SUN),
+    Sign.CANCER: (Planet.VENUS, Planet.MERCURY, Planet.MOON),
+    Sign.LEO: (Planet.SATURN, Planet.JUPITER, Planet.MARS),
+    Sign.VIRGO: (Planet.SUN, Planet.VENUS, Planet.MERCURY),
+    Sign.LIBRA: (Planet.MOON, Planet.SATURN, Planet.JUPITER),
+    Sign.SCORPIO: (Planet.MARS, Planet.SUN, Planet.VENUS),
+    Sign.SAGITTARIUS: (Planet.MERCURY, Planet.MOON, Planet.SATURN),
+    Sign.CAPRICORN: (Planet.JUPITER, Planet.MARS, Planet.SUN),
+    Sign.AQUARIUS: (Planet.VENUS, Planet.MERCURY, Planet.MOON),
+    Sign.PISCES: (Planet.SATURN, Planet.JUPITER, Planet.MARS),
+}
+
+
 POLARITY_ASSOCIATION = {
     Element.FIRE: Polarity.POSITIVE,
     Element.AIR: Polarity.POSITIVE,
@@ -122,12 +138,13 @@ ESSENTIAL_SCORE.update({
     Aspect.CONJUNCTION: [5],
     Aspect.TRINE: [3],
     Aspect.SEXTILE: [2],
-    Aspect.OPPOSITION: [4, -4],
+    Aspect.OPPOSITION: [-4],
     Aspect.SQUARE: [-3],
 
     Dignity.DETRIMENT: [-5],
     Dignity.FALL: [-4],
     Dignity.TRIPLICITY: [3],
+    Dignity.DECAN: [3],
     Dignity.EXALTATION: [4],
     Dignity.DIGNITY: [5],
 })
