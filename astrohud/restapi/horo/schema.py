@@ -46,8 +46,7 @@ planet_horo = Model('PlanetHoroscope', dict(
     position=fields.Nested(sign_pos),
     dignity=fields.String(attribute='dignity.name'),
     retrograde=fields.Boolean(),
-    positive_score=fields.Float(),
-    negative_score=fields.Float(),
+    score=fields.Float(),
 ))
 
 aspect_horo = Model('AspectHoroscope', dict(

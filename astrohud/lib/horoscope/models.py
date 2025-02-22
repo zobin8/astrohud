@@ -53,8 +53,7 @@ class PlanetHoroscope:
     position: SignPosition
     dignity: Dignity
     retrograde: bool
-    positive_score: float = 0
-    negative_score: float = 0
+    score: float = 0
 
     def __init__(self, ed: EpheDate, planet: Planet, zodiac: Zodiac, signs: BaseSplitter[Sign], houses: BaseSplitter[House]):
         """Constructor"""
@@ -63,24 +62,11 @@ class PlanetHoroscope:
         self.retrograde = self.position.speed < 0
         self._assign_scores()
 
-    def add_aspect(self, aspect: Aspect):
-        """Add an aspect to the scores"""
-        self._add_scores(ESSENTIAL_SCORE[aspect])
-
     def _assign_scores(self) -> Tuple[float, float]:
         """Assign scores based on horo aspects"""
-        scores = list(ESSENTIAL_SCORE[self.dignity])
+        self.score += ESSENTIAL_SCORE[self.dignity]
         if self.retrograde:
-            scores += [RETROGRADE_SCORE]
-        self._add_scores(scores)
-
-    def _add_scores(self, scores: List[float]):
-        """Combine positive and negative scores"""
-        for score in scores:
-            if score > 0:
-                self.positive_score += score
-            if score < 0:
-                self.negative_score += score
+            self.score += RETROGRADE_SCORE
 
     def _get_decan(self, signs: BaseSplitter[Sign]) -> Optional[Planet]:
         """Get the ruling decan of the region"""
@@ -147,8 +133,6 @@ class AspectHoroscope:
             if orb < limit:
                 self.aspect = aspect
                 self.orb = orb
-                p1.add_aspect(aspect)
-                p2.add_aspect(aspect)
                 return
             
         self.aspect = Aspect.NONE

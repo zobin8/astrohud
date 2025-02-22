@@ -14,19 +14,9 @@ from astrohud.chart._base.const import MAX_RADIUS
 from astrohud.chart._base.models import BaseChart
 from astrohud.chart._base.models import BaseCoord
 from astrohud.chart._base.models import XY
-from astrohud.chart.shapes.models import Arc
-from astrohud.chart.shapes.models import Circle
-from astrohud.chart.shapes.models import Label
 from astrohud.chart.shapes.models import Line
-from astrohud.lib.ephemeris.enums import House
-from astrohud.lib.ephemeris.enums import Planet
-from astrohud.lib.ephemeris.enums import Sign
-from astrohud.lib.horoscope.const import ESSENTIAL_SCORE
-from astrohud.lib.horoscope.enums import Aspect
-from astrohud.lib.horoscope.enums import Dignity
 from astrohud.lib.horoscope.models import Horoscope
 from astrohud.lib.math.models import Angle
-from astrohud.lib.math.models import AngleSegment
 
 
 

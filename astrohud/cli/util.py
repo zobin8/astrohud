@@ -17,7 +17,7 @@ def print_horoscope(horoscope: Horoscope):
             f'{signPos.abs_angle:4.1f}°',
             f'{signPos.declination:4.1f}°',
             f'{signPos.speed:+6.2f} deg/day',
-            f'{signHoro.positive_score+signHoro.negative_score:+03} ({signHoro.negative_score:+03})',
+            f'{signHoro.score:+03}',
         ])
 
     table.append([

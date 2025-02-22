@@ -133,19 +133,19 @@ ASPECT_DEGREES = {
 }
 
 
-ESSENTIAL_SCORE = defaultdict(list)
+ESSENTIAL_SCORE = defaultdict(lambda: 0)
 ESSENTIAL_SCORE.update({
-    Aspect.CONJUNCTION: [5],
-    Aspect.TRINE: [3],
-    Aspect.SEXTILE: [2],
-    Aspect.OPPOSITION: [-4],
-    Aspect.SQUARE: [-3],
+    Aspect.CONJUNCTION: 4,
+    Aspect.TRINE: 3,
+    Aspect.SEXTILE: 2,
+    Aspect.OPPOSITION: -4,
+    Aspect.SQUARE: -3,
 
-    Dignity.DETRIMENT: [-5],
-    Dignity.FALL: [-4],
-    Dignity.TRIPLICITY: [3],
-    Dignity.DECAN: [3],
-    Dignity.EXALTATION: [4],
-    Dignity.DIGNITY: [5],
+    Dignity.DETRIMENT: -5,
+    Dignity.FALL: -4,
+    Dignity.TRIPLICITY: 3,
+    Dignity.DECAN: 3,
+    Dignity.EXALTATION: 4,
+    Dignity.DIGNITY: 5,
 })
-RETROGRADE_SCORE = -1
+RETROGRADE_SCORE = -2
