@@ -14,6 +14,7 @@ from astrohud.lib.ephemeris.enums import House
 from astrohud.lib.ephemeris.enums import Planet
 from astrohud.lib.ephemeris.enums import Sign
 from astrohud.lib.ephemeris.enums import Zodiac
+from astrohud.lib.math.models import Angle
 from astrohud.lib.math.models import AngleSegment
 
 
@@ -52,6 +53,7 @@ class SignPosition:
 
     abs_angle: float    # degrees from start
     sign: Sign          # Sign
+    face: int           # Face in sign
     declination: float  # degrees from ecliptic
     speed: float        # degrees / day
     house: House        # House
@@ -70,6 +72,20 @@ class SignPosition:
         self.speed = speed
         self.sign = signs.split(ra, dec)
         self.house = houses.split(ra, dec)
+
+        self.face = self._get_face(signs)
+
+    def _get_face(self, signs: BaseSplitter[Sign]) -> int:
+        """Get the face of the sign region"""
+        sign_limits = signs.get_ra_limits(self.sign, self.declination)
+        face_length = sign_limits.length() / 3
+        for face_index in range(3):
+            face_start = face_index * face_length + sign_limits.a1.standard_value()
+            face = AngleSegment(face_start, face_start + face_length)
+            if face.check_collision(Angle(self.abs_angle), 0):
+                return face_index
+
+        return -1
 
     @classmethod
     def from_planet(

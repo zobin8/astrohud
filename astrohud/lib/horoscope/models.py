@@ -68,23 +68,14 @@ class PlanetHoroscope:
         if self.retrograde:
             self.score += RETROGRADE_SCORE
 
-    def _get_decan(self, signs: BaseSplitter[Sign]) -> Optional[Planet]:
+    def _get_decan(self) -> Optional[Planet]:
         """Get the ruling decan of the region"""
         sign = self.position.sign
 
         if sign not in DECANS:
             return None
         
-        sign_limits = signs.get_ra_limits(sign, self.position.declination)
-        face_length = sign_limits.length() / 3
-        for face_index in range(3):
-            face_start = face_index * face_length + sign_limits.a1.standard_value()
-            face = AngleSegment(face_start, face_start + face_length)
-            if face.check_collision(Angle(self.position.abs_angle), 0):
-                return DECANS[sign][face_index]
-
-        return None
-
+        return DECANS[sign][self.position.face]
 
     def _get_planet_dignity(self, planet: Planet, signs: BaseSplitter[Sign]) -> Dignity:
         """Get the dignity type of a planet"""
@@ -95,7 +86,7 @@ class PlanetHoroscope:
         if sign in ELEMENT_ASSOCIATION:
             triplicity = TRIPLICITIES[ELEMENT_ASSOCIATION[sign]][TRIPLICITY_TIME[house]]
 
-        decan = self._get_decan(signs)            
+        decan = self._get_decan()            
 
         if RULERS[sign] == planet:
             return Dignity.DIGNITY

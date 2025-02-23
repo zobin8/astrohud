@@ -11,7 +11,7 @@ def print_horoscope(horoscope: Horoscope):
         signPos = signHoro.position
         table.append([
             planet.name,
-            signPos.sign.name,
+            f'{signPos.sign.name} {signPos.face}',
             signPos.house.name,
             signHoro.dignity.name,
             f'{signPos.abs_angle:4.1f}°',
@@ -22,7 +22,7 @@ def print_horoscope(horoscope: Horoscope):
 
     table.append([
         'Ascending',
-        horoscope.ascending.sign.name,
+        f'{horoscope.ascending.sign.name} {horoscope.ascending.face}',
         horoscope.ascending.house.name,
         '',
         f'{horoscope.ascending.abs_angle:4.1f}°',
